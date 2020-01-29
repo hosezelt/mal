@@ -3,29 +3,53 @@ extern crate rustyline;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
+struct Ast {
+    tokens: String
+}
+
+fn read(input: String) -> Ast {
+    Ast { tokens: input }
+}
+
+fn eval(ast: Ast) -> String {
+    ast.tokens
+}
+
+fn print(exp: String) -> String {
+    exp
+}
+
+fn rep(line: String) -> String {
+    return print(eval(read(line)));
+}
+
 fn main() {
-    // `()` can be used when no completer is required
     let mut rl = Editor::<()>::new();
-    if rl.load_history(".mal-history").is_err() {
-        eprintln!("No previous history.");
+    if rl.load_history("history.txt").is_err() {
+        println!("No previous history.");
     }
 
     loop {
         let readline = rl.readline("user> ");
         match readline {
             Ok(line) => {
-                rl.add_history_entry(&line);
-                rl.save_history(".mal-history").unwrap();
-                if line.len() > 0 {
-                    println!("{}", line);
-                }
-            }
-            Err(ReadlineError::Interrupted) => continue,
-            Err(ReadlineError::Eof) => break,
+                rl.add_history_entry(line.as_str());
+                let exp = rep(line);
+                println!("{}", exp);
+            },
+            Err(ReadlineError::Interrupted) => {
+                println!("CTRL-C");
+                break
+            },
+            Err(ReadlineError::Eof) => {
+                println!("CTRL-D");
+                break
+            },
             Err(err) => {
                 println!("Error: {:?}", err);
-                break;
+                break
             }
         }
+        rl.save_history("history.txt").unwrap();
     }
 }
