@@ -5,8 +5,10 @@ extern crate lazy_static;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
+mod types;
 mod reader;
 mod printer;
+
 
 struct Ast {
     tokens: String

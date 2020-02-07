@@ -21,11 +21,11 @@ def debug(data):
         debug_file.write(data)
         debug_file.flush()
 
-def log(data, end='\n'):
+def log(data, end='\n', color = '\033[0m'):
     if log_file:
         log_file.write(data + end)
         log_file.flush()
-    print(data, end=end)
+    print(color + data, end=end)
     sys.stdout.flush()
 
 # TODO: do we need to support '\n' too
@@ -313,7 +313,7 @@ while t.next():
             pass_cnt += 1
         elif (re.search(expects[0], res, re.S) or
                 re.search(expects[1], res, re.S)):
-            log(" -> SUCCESS")
+            log(" -> SUCCESS", color='\033[92m')
             pass_cnt += 1
         else:
             if t.soft and not args.hard:
@@ -321,7 +321,7 @@ while t.next():
                 soft_fail_cnt += 1
                 fail_type = "SOFT "
             else:
-                log(" -> FAIL (line %d):" % t.line_num)
+                log(" -> FAIL (line %d):" % t.line_num,color='\033[91m')
                 fail_cnt += 1
                 fail_type = ""
             log("    Expected : %s" % repr(expects[0]))
@@ -338,7 +338,7 @@ while t.next():
         sys.exit(1)
 
 if len(failures) > 0:
-    log("\nFAILURES:")
+    log("\nFAILURES:", color='\033[91m')
     for f in failures:
         log(f)
 
