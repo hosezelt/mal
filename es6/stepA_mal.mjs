@@ -75,8 +75,8 @@ const EVAL = (ast, env) => {
                         return EVAL(a1, env);
                     } catch (err) {
                         if (a2 && a2[0] === Symbol.for("catch*")) {
-                            if (exc instanceof Error) { exc = exc.message }
-                            return EVAL(a2[2], new Env(env, a2[1], err))
+                            if (err instanceof Error) { err = err.message }
+                            return EVAL(a2[2], new Env(env, [a2[1]], [err]))
                         } else {
                             throw err
                         }
@@ -93,11 +93,11 @@ const EVAL = (ast, env) => {
                     ast = a2;
                     break;
                 case Symbol.for("do"):
-                    eval_ast(ast.slice(1,-1), env);
+                    eval_ast(ast.slice(1, -1), env);
                     ast = ast[ast.length - 1];
                     break;
                 case Symbol.for("if"):
-                    let cond =  EVAL(a1, env);
+                    let cond = EVAL(a1, env);
                     if (cond === null || cond === false) {
                         ast = (typeof a3 !== 'undefined') ? a3 : null
                     } else {
@@ -157,7 +157,7 @@ const repl_env = new Env(null);
 
 ns.forEach((val, key) => repl_env.set(key, val));
 repl_env.set(Symbol.for("eval"), (ast) => EVAL(ast, repl_env));
-
+repl_env.set(Symbol.for("*ARGV*"), [])
 
 // repl
 const REP = str => PRINT(EVAL(READ(str), repl_env))
@@ -167,10 +167,12 @@ REP("(def! not (fn* (a) (if a false true)))")
 REP('(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) " nil)")))))')
 REP("(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw odd number of forms to cond)) (cons 'cond (rest (rest xs)))))))")
 
-/* if(process.argv.length > 2) { 
+
+if (process.argv.length > 2) {
     repl_env.set(Symbol.for("*ARGV*"), process.argv.slice(3))
     REP(`(load-file "${process.argv[2]}")`)
-    process.exit(0) } */
+    process.exit(0)
+}
 
 REP("(println (str \"Mal\" [ *host-language* ]))")
 
