@@ -1,29 +1,3 @@
-{"a1" 1 "a2" 2 "a3" 3}
-{  :a  {:b   {  :cde     3   }  }}
-{"1" 1}
-({})
- ;; whole line comment (not an exception)
-1 ; comment after expression
-1; comment after expression
-@a
-^{"a" 1} [1 2 3]
-"\n"
-"#"
-"$"
-"%"
-"."
-"\\"
-"|"
-1;!
-1;"
-1;#
-1;$
-1;%
-1;'
-1;\
-1;\\
-1;\\\
-1;`
 1; &()*+,-./:;<=>?@[]^_{|}~
 "!"
 abcABC123
@@ -74,6 +48,32 @@ $
 %
 .
 |
+abcABC123
+hello mal world
+[]{}"'* ;:()
+hello world abcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789 (;:() []{}"'* ;:() []{}"'* ;:() []{}"'*)
+!
+&
++
+,
+-
+/
+<
+=
+>
+?
+@
+^
+_
+`
+~
+#
+$
+%
+.
+|
+1
+7
 abcABC123
 
 hello mal world

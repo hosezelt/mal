@@ -47,7 +47,7 @@ export const ns = new Map(
 
         [Symbol.for("atom"), (a, ...b) => new Atom(a)],
         [Symbol.for("atom?"), (a, ...b) => (a instanceof Atom)],
-        [Symbol.for("deref"), (a, ...b) => a.val],
+        [Symbol.for("deref"), (a, ...b) => a ? a.val : null],
         [Symbol.for("reset!"), (a, ...b) => a.val = b[0]],
         [Symbol.for("swap!"), (atm,f,...args) => atm.val = f(...[atm.val].concat(args))],
 

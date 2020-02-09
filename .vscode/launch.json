@@ -14,9 +14,10 @@
                 "esm"
             ],
             "args": [
-                "mal/step0_mal.mal"
+                "../mal/stepA_mal.mal"
             ],
-            "console": "integratedTerminal"
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}"
         }
     ]
 }
