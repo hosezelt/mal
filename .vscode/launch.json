@@ -8,10 +8,13 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "program": "${workspaceFolder}/es6/step6_file.mjs",
+            "program": "${workspaceFolder}/es6/stepA_mal.mjs",
             "runtimeArgs": [
                 "-r",
                 "esm"
+            ],
+            "args": [
+                "mal/step0_mal.mal"
             ],
             "console": "integratedTerminal"
         }

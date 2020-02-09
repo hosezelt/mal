@@ -3,9 +3,15 @@ export class Env {
         this.outer = outer;
         this.data = new Map();
         if(Array.isArray(binds)) {
-            binds.forEach((val, idx) => {
-                this.data.set(val, exprs[idx]);
-            })
+            for (let [idx, val] of binds.entries()) {
+                if(val === Symbol.for("&")) {
+                    this.data.set(binds[idx + 1], exprs.slice(idx));
+                    break;
+                }
+                else {
+                    this.data.set(val, exprs[idx]);
+                }
+            }
         }
     }
 

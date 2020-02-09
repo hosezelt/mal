@@ -17,6 +17,8 @@
 (= "something bogus" *host-language*)
 ;=>false
 
+(if "" true false)
+;=>true
 
 ;>>> deferrable=True
 ;;

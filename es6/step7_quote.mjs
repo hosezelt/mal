@@ -8,6 +8,25 @@ import { isList } from "./types.mjs"
 
 const { readline } = rl;
 
+const isPair = (a) => Array.isArray(a) && a.length > 0;
+
+const quasiquote = (ast) => {
+    if (!isPair(ast)) {
+        return [Symbol.for("quote"), ast];
+    }
+    else if (ast[0] === Symbol.for("unquote")) {
+        return ast[1];
+    }
+    else if (isPair(ast[0]) && ast[0][0] === Symbol.for("splice-unquote")) {
+        return [Symbol.for("concat"), ast[0][1], quasiquote(ast.slice(1))];
+    }
+    else {
+        return [Symbol.for("cons"), quasiquote(ast[0]), quasiquote(ast.slice(1))];
+    }
+
+}
+
+
 // read
 const READ = str => read_str(str)
 
@@ -34,7 +53,7 @@ const EVAL = (ast, env) => {
                         }
                     })
                     env = new_env;
-                    ast = ast[2];
+                    ast = a2;
                     break;
                 case Symbol.for("do"):
                     eval_ast(ast.slice(1, ast.length - 1), env);
@@ -49,18 +68,23 @@ const EVAL = (ast, env) => {
                         ast: a2,
                         params: a1,
                         env,
-                    });                 
+                    });
+                case Symbol.for("quote"):
+                    return a1;
+                case Symbol.for("quasiquote"):
+                    ast = quasiquote(a1);
+                    break;
                 default:
                     const [f, ...args] = eval_ast(ast, env)
-                    if(f.malfunc) {
+                    if (f.malfunc) {
                         ast = f.ast;
-                        env  = new Env(f.env, f.params, args);
+                        env = new Env(f.env, f.params, args);
                         break;
                     }
                     else {
                         return f(...args)
                     }
-                    
+
             }
         }
     }
@@ -89,7 +113,7 @@ const PRINT = exp => pr_str(exp)
 const repl_env = new Env(null);
 
 ns.forEach((val, key) => repl_env.set(key, val));
-repl_env.set(Symbol.for("eval"), (ast) => EVAL(ast,repl_env));
+repl_env.set(Symbol.for("eval"), (ast) => EVAL(ast, repl_env));
 repl_env.set(Symbol.for("*ARGV*"), process.argv.slice(2))
 
 // repl

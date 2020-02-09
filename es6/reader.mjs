@@ -1,4 +1,4 @@
-import { Vector, _hash_Map, _keyword } from "./types.mjs"
+import { Vector, _hashMap, _keyword } from "./types.mjs"
 
 class Reader {
     constructor(tokens) {
@@ -14,13 +14,28 @@ function tokenize(code) {
 
     let matches = [...code.matchAll(re)];
 
-    return matches.map((match) => match[1]);
+    return matches.map((match) => match[1]).filter((match) => match[0] !== ";");
 }
 
 function read_form(reader) {
     let token = reader.peek();
 
     switch (token) {
+        case "@":
+            reader.next()
+            return [Symbol.for("deref"), read_form(reader)];
+        case "'":
+            reader.next()
+            return [Symbol.for("quote"), read_form(reader)];
+        case "`":
+            reader.next()
+            return [Symbol.for("quasiquote"), read_form(reader)];
+        case "~":
+            reader.next()
+            return [Symbol.for("unquote"), read_form(reader)];
+        case "~@":
+            reader.next()
+            return [Symbol.for("splice-unquote"), read_form(reader)];
         case "(":
             return read_list(reader);
         case ")":
@@ -58,7 +73,7 @@ function read_vector(reader) {
 }
 
 function read_hash_map(reader) {
-    return _hash_Map(new Map(), ...read_list(reader, '}'))
+    return _hashMap(new Map(), ...read_list(reader, '}'))
 }
 
 function read_atom(reader) {
@@ -68,7 +83,7 @@ function read_atom(reader) {
         return parseInt(token);
     }
     else if (token.match(/^-?[0-9][0-9.]*$/)) {
-        return parseFloat(token,10)
+        return parseFloat(token, 10)
     }
     else if (token.match(/^"(?:\\.|[^\\"])*"$/)) {
         return token.slice(1, token.length - 1)

@@ -1,4 +1,4 @@
-import { Vector, isList, _isKeyword  } from "./types.mjs"
+import { Vector, isList, _isKeyword, Atom } from "./types.mjs"
 
 export function pr_str(malType, printReadably) {
     if (typeof printReadably === 'undefined') { printReadably = true }
@@ -18,11 +18,14 @@ export function pr_str(malType, printReadably) {
         }
         return "{" + ret.join(' ') + "}"
     }
+    else if (malType instanceof Atom) {
+        return `(atom ${malType.val})`;
+    }
     else if (typeof malType === "string") {
         if (_isKeyword(malType)) {
             return ":" + malType.slice(1);
         }
-        if (_r) {
+        else if (_r) {
             return '"' + malType.replace(/\\/g, "\\\\")
                 .replace(/"/g, '\\"')
                 .replace(/\n/g, "\\n") + '"'
@@ -33,7 +36,7 @@ export function pr_str(malType, printReadably) {
     else if (typeof malType === 'symbol') {
         return Symbol.keyFor(malType)
     }
-    else if (malType === null) {
+    else if (malType === null || malType === undefined) {
         return "nil";
     }
     else if (malType === false) {

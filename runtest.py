@@ -326,7 +326,7 @@ while t.next():
                 fail_type = ""
             log("    Expected : %s" % repr(expects[0]))
             log("    Got      : %s" % repr(res))
-            failed_test = """%sFAILED TEST (line %d): %s -> [%s,%s]:
+            failed_test = """%s\033[91mFAILED TEST (line %d):\033[0m %s -> [%s,%s]:
     Expected : %s
     Got      : %s""" % (fail_type, t.line_num, t.form, repr(t.out),
                         t.ret, repr(expects[0]), repr(res))

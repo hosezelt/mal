@@ -8,6 +8,42 @@ import { isList } from "./types.mjs"
 
 const { readline } = rl;
 
+const isPair = (a) => Array.isArray(a) && a.length > 0;
+
+const quasiquote = (ast) => {
+    if (!isPair(ast)) {
+        return [Symbol.for("quote"), ast];
+    }
+    else if (ast[0] === Symbol.for("unquote")) {
+        return ast[1];
+    }
+    else if (isPair(ast[0]) && ast[0][0] === Symbol.for("splice-unquote")) {
+        return [Symbol.for("concat"), ast[0][1], quasiquote(ast.slice(1))];
+    }
+    else {
+        return [Symbol.for("cons"), quasiquote(ast[0]), quasiquote(ast.slice(1))];
+    }
+
+}
+
+const isMacro = (ast, env) => {
+    if (Array.isArray(ast) && typeof ast[0] === "symbol") {
+        if (env.find(ast[0])) {
+            return env.get(ast[0]).is_macro;
+        }
+    }
+    return false;
+}
+
+const macroexpand = (ast, env) => {
+    while (isMacro(ast, env)) {
+        ast = env.get(ast[0])(...ast.slice(1));
+    }
+    return ast;
+}
+
+
+
 // read
 const READ = str => read_str(str)
 
@@ -21,10 +57,20 @@ const EVAL = (ast, env) => {
             return ast;
         }
         else {
+            ast = macroexpand(ast, env);
+            if (!isList(ast)) {
+                return eval_ast(ast, env);
+            }
             const [a0, a1, a2, a3] = ast;
             switch (a0) {
                 case Symbol.for("def!"):
                     return env.set(a1, EVAL(a2, env));
+                case Symbol.for("defmacro!"):
+                    let func = EVAL(a2, env);
+                    func.is_macro = true;
+                    return env.set(a1, func);
+                case Symbol.for("macroexpand"):
+                    return macroexpand(ast[1], env);
                 case Symbol.for("let*"):
                     let new_env = new Env(env);
                     let binding = a1;
@@ -34,7 +80,7 @@ const EVAL = (ast, env) => {
                         }
                     })
                     env = new_env;
-                    ast = ast[2];
+                    ast = a2;
                     break;
                 case Symbol.for("do"):
                     eval_ast(ast.slice(1, ast.length - 1), env);
@@ -49,18 +95,24 @@ const EVAL = (ast, env) => {
                         ast: a2,
                         params: a1,
                         env,
-                    });                 
+                        is_macro: false
+                    });
+                case Symbol.for("quote"):
+                    return a1;
+                case Symbol.for("quasiquote"):
+                    ast = quasiquote(a1);
+                    break;
                 default:
                     const [f, ...args] = eval_ast(ast, env)
-                    if(f.malfunc) {
+                    if (f.malfunc) {
                         ast = f.ast;
-                        env  = new Env(f.env, f.params, args);
+                        env = new Env(f.env, f.params, args);
                         break;
                     }
                     else {
                         return f(...args)
                     }
-                    
+
             }
         }
     }
@@ -89,7 +141,7 @@ const PRINT = exp => pr_str(exp)
 const repl_env = new Env(null);
 
 ns.forEach((val, key) => repl_env.set(key, val));
-repl_env.set(Symbol.for("eval"), (ast) => EVAL(ast,repl_env));
+repl_env.set(Symbol.for("eval"), (ast) => EVAL(ast, repl_env));
 repl_env.set(Symbol.for("*ARGV*"), process.argv.slice(2))
 
 // repl
@@ -97,6 +149,7 @@ const REP = str => PRINT(EVAL(READ(str), repl_env))
 
 REP("(def! not (fn* (a) (if a false true)))")
 REP("(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))")
+REP("(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))")
 
 while (true) {
 
