@@ -1,10 +1,9 @@
-
 import rl from './node_readline.js'
 import { Env } from "./env.mjs"
 import { ns } from "./core.mjs"
 import { read_str } from "./reader.mjs"
 import { pr_str } from "./printer.mjs"
-import { isList } from "./types.mjs"
+import { _isList, _clone, _isKeyword } from "./types.mjs"
 
 const { readline } = rl;
 
@@ -50,7 +49,7 @@ const READ = str => read_str(str)
 // eval
 const EVAL = (ast, env) => {
     while (true) {
-        if (!isList(ast)) {
+        if (!_isList(ast)) {
             return eval_ast(ast, env);
         }
         else if (ast.length === 0) {
@@ -58,7 +57,7 @@ const EVAL = (ast, env) => {
         }
         else {
             ast = macroexpand(ast, env);
-            if (!isList(ast)) {
+            if (!_isList(ast)) {
                 return eval_ast(ast, env);
             }
             const [a0, a1, a2, a3] = ast;
@@ -66,7 +65,7 @@ const EVAL = (ast, env) => {
                 case Symbol.for("def!"):
                     return env.set(a1, EVAL(a2, env));
                 case Symbol.for("defmacro!"):
-                    let func = EVAL(a2, env);
+                    let func = _clone(EVAL(a2, env));
                     func.is_macro = true;
                     return env.set(a1, func);
                 case Symbol.for("macroexpand"):
@@ -74,15 +73,13 @@ const EVAL = (ast, env) => {
                 case Symbol.for("try*"):
                     try {
                         return EVAL(a1, env);
-                    }
-                    catch(err) {
-                        if (ast[2]) {
-                            let new_env = new Env(env);
-                            new_env.set(ast[2][1], err.message);
-                            return EVAL(ast[2][2], new_env)
+                    } catch (err) {
+                        if (a2 && a2[0] === Symbol.for("catch*")) {
+                            if (err instanceof Error) { err = err.message }
+                            return EVAL(a2[2], new Env(env, [a2[1]], [err]))
+                        } else {
+                            throw err
                         }
-                        return err.message;
-
                     }
                 case Symbol.for("let*"):
                     let new_env = new Env(env);
@@ -96,11 +93,16 @@ const EVAL = (ast, env) => {
                     ast = a2;
                     break;
                 case Symbol.for("do"):
-                    eval_ast(ast.slice(1, ast.length - 1), env);
+                    eval_ast(ast.slice(1, -1), env);
                     ast = ast[ast.length - 1];
                     break;
                 case Symbol.for("if"):
-                    EVAL(a1, env) ? ast = a2 : ast = a3;
+                    let cond = EVAL(a1, env);
+                    if (cond === null || cond === false) {
+                        ast = (typeof a3 !== 'undefined') ? a3 : null
+                    } else {
+                        ast = a2
+                    }
                     break;
                 case Symbol.for("fn*"):
                     return Object.assign((...args) => EVAL(a2, new Env(env, a1, args)), {
@@ -122,6 +124,9 @@ const EVAL = (ast, env) => {
                         env = new Env(f.env, f.params, args);
                         break;
                     }
+                    else if (_isKeyword(f)) {
+                        return args[0][f]
+                    }
                     else {
                         return f(...args)
                     }
@@ -135,9 +140,9 @@ const eval_ast = (ast, env) => {
     if (Array.isArray(ast)) {
         return ast.map(token => EVAL(token, env));
     }
-    else if (ast instanceof Map) {
-        let new_hm = new Map()
-        ast.forEach((v, k) => new_hm.set(k, EVAL(v, env)))
+    else if (ast && ast.type === "dictionary") {
+        let new_hm = Object.create({type: "dictionary"});
+        Object.entries(ast).forEach(([k, v]) => new_hm[k] = EVAL(v, env));
         return new_hm
     }
     else if (typeof ast === "symbol") {
@@ -155,14 +160,24 @@ const repl_env = new Env(null);
 
 ns.forEach((val, key) => repl_env.set(key, val));
 repl_env.set(Symbol.for("eval"), (ast) => EVAL(ast, repl_env));
-repl_env.set(Symbol.for("*ARGV*"), process.argv.slice(2))
+repl_env.set(Symbol.for("*ARGV*"), [])
 
 // repl
 const REP = str => PRINT(EVAL(READ(str), repl_env))
 
+REP("(def! *host-language* \"Javascript\")")
 REP("(def! not (fn* (a) (if a false true)))")
-REP("(def! load-file (fn* (f) (eval (read-string (str \"(do \" (slurp f) \"\nnil)\")))))")
-REP("(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw \"odd number of forms to cond\")) (cons 'cond (rest (rest xs)))))))")
+REP('(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) " nil)")))))')
+REP("(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw odd number of forms to cond)) (cons 'cond (rest (rest xs)))))))")
+
+
+if (process.argv.length > 2) {
+    repl_env.set(Symbol.for("*ARGV*"), process.argv.slice(3))
+    REP(`(load-file "${process.argv[2]}")`)
+    process.exit(0)
+}
+
+REP("(println (str \"Mal\" [ *host-language* ]))")
 
 while (true) {
 

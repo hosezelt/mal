@@ -57,18 +57,18 @@ export const ns = new Map(
         [Symbol.for("keyword"), (a) => _keyword(a)],
         [Symbol.for("keyword?"), (a) => _isKeyword(a)],
 
-        [Symbol.for("hash-map"), (...a) => _hashMap(new Map(), ...a)],
-        [Symbol.for("map?"), (a) => a instanceof Map],
-        [Symbol.for("assoc"), (a, ...b) => _hashMap(new Map(a), ...b) ],
+        [Symbol.for("hash-map"), (...a) => _hashMap(Object.create({type: "dictionary"}), ...a)],
+        [Symbol.for("map?"), (a) => a  && a.type === "dictionary"],
+        [Symbol.for("assoc"), (a, ...b) => _hashMap(Object.assign(Object.create({type: "dictionary"}), a), ...b) ],
         [Symbol.for("dissoc"), (a, ...b) => {
-            let d = new Map(a);
-            b.forEach(key => d.delete(key));
+            let d = Object.assign(Object.create({type: "dictionary"}), a);
+            b.forEach(key => delete d[key]);
             return d;
         } ],
-        [Symbol.for("get"), (a, b) => a instanceof Map ? a.get(b) : null],
-        [Symbol.for("contains?"), (a, b) => a instanceof Map ? a.has(b) : false],
-        [Symbol.for("keys"), (a) => a instanceof Map ? [...a.keys()] : []],
-        [Symbol.for("vals"), (a) => a instanceof Map ? [...a.values()] : []],
+        [Symbol.for("get"), (a, b) => a && a.type === "dictionary" ? a[b] : null],
+        [Symbol.for("contains?"), (a, b) =>  a && a.type === "dictionary" ? a.hasOwnProperty(b) : false],
+        [Symbol.for("keys"), (a) =>  a && a.type === "dictionary"  ? [...Object.keys(a)] : []],
+        [Symbol.for("vals"), (a) =>  a && a.type === "dictionary"  ? [...Object.values(a)] : []],
 
         [Symbol.for("sequential?"), (a) => a instanceof Vector || a instanceof Array ],
         [Symbol.for("symbol"), (a) => Symbol.for(a)],

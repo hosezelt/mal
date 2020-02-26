@@ -125,7 +125,7 @@ const EVAL = (ast, env) => {
                         break;
                     }
                     else if (_isKeyword(f)) {
-                        return args[0].get(f)
+                        return args[0][f]
                     }
                     else {
                         return f(...args)
@@ -140,9 +140,9 @@ const eval_ast = (ast, env) => {
     if (Array.isArray(ast)) {
         return ast.map(token => EVAL(token, env));
     }
-    else if (ast instanceof Map) {
-        let new_hm = new Map()
-        ast.forEach((v, k) => new_hm.set(k, EVAL(v, env)))
+    else if (ast && ast.type === "dictionary") {
+        let new_hm = Object.create({type: "dictionary"});
+        Object.entries(ast).forEach(([k, v]) => new_hm[k] = EVAL(v, env));
         return new_hm
     }
     else if (typeof ast === "symbol") {

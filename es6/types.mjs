@@ -6,7 +6,7 @@ export function _hashMap(hm, ...args) {
     if (args.length % 2 === 1) {
         throw new Error('Odd number of assoc arguments')
     }
-    for (let i = 0; i < args.length; i += 2) { hm.set(args[i], args[i + 1]) }
+    for (let i = 0; i < args.length; i += 2) { hm[args[i]] = args[i + 1] }
     return hm
 };
 
@@ -21,9 +21,10 @@ export function _equal(a, b) {
         return true;
     }
 
-    if (a instanceof Map && b instanceof Map) {
-        for (const entry of a) {
-            if(!_equal(b.get(entry[0]), entry[1])) return false;
+    if (a && b && a.type==="dictionary" && b.type ==="dictionary") {
+
+        for (const entry of Object.entries(a)) {
+            if(!_equal(b[entry[0]], entry[1])) return false;
         }
         return true
     }
@@ -46,8 +47,8 @@ export function _clone(obj, new_meta) {
         new_obj = obj.slice(0)
     } else if (obj instanceof Vector) {
         new_obj = Vector.from(obj)
-    } else if (obj instanceof Map) {
-        new_obj = new Map(obj.entries())
+    } else if (obj && obj.type === "dictionary") {
+        new_obj = Object.assign(Object.create({type: "dictionary"}), obj);
     } else if (obj instanceof Function) {
         let f = (...a) => obj.apply(f, a)  // new function instance
         new_obj = Object.assign(f, obj)    // copy original properties

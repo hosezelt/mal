@@ -77,7 +77,7 @@ function read_vector(reader) {
 }
 
 function read_hash_map(reader) {
-    return _hashMap(new Map(), ...read_list(reader, '}'))
+    return _hashMap(Object.create({type: "dictionary"}), ...read_list(reader, '}'))
 }
 
 function read_atom(reader) {

@@ -11,11 +11,10 @@ export function pr_str(malType, printReadably) {
         let str = malType.map(token => pr_str(token, _r)).join(" ");
         return `[${str}]`
     }
-    else if (malType instanceof Map) {
-        let ret = []
-        for (let [k,v] of malType) {
-            ret.push(pr_str(k,_r), pr_str(v,_r))
-        }
+    else if (malType && malType.type === "dictionary") {
+        let ret = [];
+
+        Object.entries(malType).forEach(([k,v]) => ret.push(pr_str(k,_r), pr_str(v,_r)));
         return "{" + ret.join(' ') + "}"
     }
     else if (malType instanceof Atom) {

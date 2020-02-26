@@ -100,7 +100,7 @@ function read_atom(reader) {
         return new Number(token);
     }
     else if (token.match(/^-?[0-9][0-9.]*$/)) {
-        return new Number.token;
+        return new Number(token);
     }
     else if (token.match(/^"(?:\\.|[^\\"])*"$/)) {
         return token.slice(1, token.length - 1)
