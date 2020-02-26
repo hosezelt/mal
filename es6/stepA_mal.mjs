@@ -3,7 +3,7 @@ import { Env } from "./env.mjs"
 import { ns } from "./core.mjs"
 import { read_str } from "./reader.mjs"
 import { pr_str } from "./printer.mjs"
-import { isList } from "./types.mjs"
+import { _isList, _clone, _isKeyword } from "./types.mjs"
 
 const { readline } = rl;
 
@@ -49,7 +49,7 @@ const READ = str => read_str(str)
 // eval
 const EVAL = (ast, env) => {
     while (true) {
-        if (!isList(ast)) {
+        if (!_isList(ast)) {
             return eval_ast(ast, env);
         }
         else if (ast.length === 0) {
@@ -57,7 +57,7 @@ const EVAL = (ast, env) => {
         }
         else {
             ast = macroexpand(ast, env);
-            if (!isList(ast)) {
+            if (!_isList(ast)) {
                 return eval_ast(ast, env);
             }
             const [a0, a1, a2, a3] = ast;
@@ -65,7 +65,7 @@ const EVAL = (ast, env) => {
                 case Symbol.for("def!"):
                     return env.set(a1, EVAL(a2, env));
                 case Symbol.for("defmacro!"):
-                    let func = EVAL(a2, env);
+                    let func = _clone(EVAL(a2, env));
                     func.is_macro = true;
                     return env.set(a1, func);
                 case Symbol.for("macroexpand"):
@@ -123,6 +123,9 @@ const EVAL = (ast, env) => {
                         ast = f.ast;
                         env = new Env(f.env, f.params, args);
                         break;
+                    }
+                    else if (_isKeyword(f)) {
+                        return args[0].get(f)
                     }
                     else {
                         return f(...args)

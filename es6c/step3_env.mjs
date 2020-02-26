@@ -1,0 +1,191 @@
+
+import rl from './node_readline.js'
+import { read_str } from "./reader.mjs"
+import { pr_str } from "./printer.mjs"
+import { _isList } from "./types.mjs"
+import * as escodegen from "escodegen"
+
+const { readline } = rl;
+const writer = {
+    '+': (a, b) => {
+        return {
+            type: "BinaryExpression",
+            operator: "+",
+            left: a,
+            right: b
+        }
+    },
+    '-': (a, b) => {
+        return {
+            type: "BinaryExpression",
+            operator: "-",
+            left: a,
+            right: b
+        }
+    },
+    '*': (a, b) => {
+        return {
+            type: "BinaryExpression",
+            operator: "*",
+            left: a,
+            right: b
+        }
+    },
+    '/': (a, b) => {
+        return {
+            type: "BinaryExpression",
+            operator: "/",
+            left: a,
+            right: b
+        }
+    }
+}
+// read
+const READ = str => read_str(str)
+
+// eval
+const COMPILE = (ast, env) => {
+    if (!_isList(ast)) {
+        return compile_ast(ast, env);
+    }
+    else if (ast.length === 0) {
+        return ast;
+    }
+    else {
+        if (ast[0] === Symbol.for("def!")) {
+            return {
+                type: "VariableDeclaration",
+                kind: "var",
+                declarations: [{
+                    type: "VariableDeclarator",
+                    id: {
+                        type: "Identifier",
+                        name: Symbol.keyFor(ast[1])
+                    },
+                    init: COMPILE(ast[2], env)
+                }
+                ]
+            }
+        }
+
+        if (ast[0] === Symbol.for("let*")) {
+            return {
+                type: "ExpressionStatement",
+                expression: {
+                    type: "CallExpression",
+                    arguments: [{
+                        type: "ThisExpression"
+                    }],
+                    extra: {
+                        parenthesized: true,
+                        parenStart: 0
+                    },
+                    callee: {
+                        type: "MemberExpression",
+                        object: {
+                            type: "FunctionExpression",
+                            params: [],
+                            body: {
+                                type: "BlockStatement",
+                                body: [{
+                                    type: "VariableDeclaration",
+                                    kind: "var",
+                                    declarations: [{
+                                        type: "VariableDeclarator",
+                                        id: COMPILE(ast[1][0]),
+                                        init: COMPILE(ast[1][1])
+                                    }]
+                                }, {
+                                    type: "ReturnStatement",
+                                    argument: COMPILE(ast[2])
+                                }]
+                            }
+                        },
+                        property: {
+                            type: "Identifier",
+                            name: "call"
+                        }
+                    }
+                }
+            }
+        }
+
+        const [f, ...args] = compile_ast(ast, env)
+
+        return writer[f.name](...args);
+    }
+}
+
+const compile_ast = (ast, env) => {
+    if (Array.isArray(ast)) {
+        return ast.map(token => COMPILE(token, env));
+    }
+    else if (ast instanceof Map) {
+        let new_hm = new Map()
+        ast.forEach((v, k) => new_hm.set(COMPILE(k, env), COMPILE(v, env)))
+        return new_hm
+    }
+    else if (writer.hasOwnProperty(ast)) {
+        return writer[ast];
+    }
+    else if (typeof ast === "symbol") {
+        return {
+            type: 'Identifier',
+            name: Symbol.keyFor(ast)
+        }
+    }
+    else {
+        return ast < 0 ? {
+            type: "UnaryExpression",
+            operator: ast.toString()[0],
+            argument: {
+                type: "Literal",
+                value: ast.toString().substr(1),
+            }
+        }
+            : {
+                type: "Literal",
+                value: ast.valueOf()
+            }
+    }
+}
+
+
+// print
+const PRINT = exp => pr_str(exp)
+
+const repl_env = new Map(
+    [
+        [Symbol.for("+"), "+"],
+        [Symbol.for("-"), "-"],
+        [Symbol.for("*"), "*"],
+        [Symbol.for("/"), "/"],
+    ]
+)
+
+
+
+// repl
+const REP = str => PRINT(eval(escodegen.generate(COMPILE(READ(str), repl_env))));
+
+
+
+while (true) {
+
+    let line = readline('user> ')
+    if (line == null) break
+    try {
+        if (line) {
+            let form = READ(line);
+            let ast = COMPILE(form);
+            let code = escodegen.generate(ast);
+            let res = eval.call(process, code);
+            console.log(PRINT(res));
+
+        }
+    }
+    catch (exc) {
+        console.warn(`Error: ${exc}`)
+    }
+
+}

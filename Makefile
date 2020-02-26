@@ -90,7 +90,7 @@ DOCKERIZE =
 #
 
 IMPLS = ada ada.2 awk bash basic bbc-basic c chuck clojure coffee common-lisp cpp crystal cs d dart \
-	elisp elixir elm erlang es6 es6_off factor fantom forth fsharp go groovy gnu-smalltalk \
+	elisp elixir elm erlang es6 es6c factor fantom forth fsharp go groovy gnu-smalltalk \
 	guile haskell haxe hy io java js jq julia kotlin livescript logo lua make mal \
 	matlab miniMAL nasm nim objc objpascal ocaml perl perl6 php picolisp pike plpgsql \
 	plsql powershell ps python python.2 r racket rexx rpython ruby rust scala scheme skew \
@@ -204,6 +204,7 @@ elixir_STEP_TO_PROG =  elixir/lib/mix/tasks/$($(1)).ex
 elm_STEP_TO_PROG =     elm/$($(1)).js
 erlang_STEP_TO_PROG =  erlang/$($(1))
 es6_STEP_TO_PROG =     es6/$($(1)).mjs
+es6c_STEP_TO_PROG =     es6c/$($(1)).mjs
 factor_STEP_TO_PROG =  factor/$($(1))/$($(1)).factor
 fantom_STEP_TO_PROG =  fantom/lib/fan/$($(1)).pod
 forth_STEP_TO_PROG =   forth/$($(1)).fs

@@ -7,7 +7,7 @@
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Program",
+            "name": "Launch Self Hosted",
             "program": "${workspaceFolder}/es6/stepA_mal.mjs",
             "runtimeArgs": [
                 "-r",
@@ -15,6 +15,19 @@
             ],
             "args": [
                 "../mal/stepA_mal.mal"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Repl",
+            "program": "${workspaceFolder}/es6c/step4_if_fn_do.mjs",
+            "runtimeExecutable": "${env:HOME}/.nvm/versions/node/v12.14.1/bin/node",
+            "runtimeArgs": [
+                "-r",
+                "esm"
             ],
             "console": "integratedTerminal",
             "cwd": "${fileDirname}"

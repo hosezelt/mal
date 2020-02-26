@@ -1,5 +1,5 @@
 import { pr_str } from "./printer.mjs";
-import { isList, _equal, Atom, Vector, _hashMap, _isKeyword, _keyword } from "./types.mjs";
+import { _isList, _equal, Atom, Vector, _hashMap, _isKeyword, _keyword, _clone } from "./types.mjs";
 import { read_str } from "./reader.mjs";
 import rl from './node_readline.js'
 
@@ -35,11 +35,11 @@ export const ns = new Map(
         [Symbol.for("count"), (a) => a ? a.length : 0],
         [Symbol.for("empty?"), (a) => a.length === 0],
         [Symbol.for("list"), (...a) => [...a]],
-        [Symbol.for("list?"), (a) => isList(a)],
+        [Symbol.for("list?"), (a) => _isList(a)],
         [Symbol.for("vector"), (...a) => Vector.from(a)],
         [Symbol.for("vector?"), (a) => a instanceof Vector],
         [Symbol.for("cons"), (a, b) => [a].concat(b)],
-        [Symbol.for("conj"), (a, b) => {throw new Error("Not implemented")}],
+        [Symbol.for('conj'), (s,...a) => _isList(s) ? a.reverse().concat(s) : Vector.from(s.concat(a))],
         [Symbol.for("concat"), (...b) => [].concat(...b)],
         [Symbol.for("nth"), (a, b) => b < a.length ? a[b] : _error("nth: index out of range")],
         [Symbol.for("first"), (a) => a === null ? null : a[0]],
@@ -74,11 +74,12 @@ export const ns = new Map(
         [Symbol.for("symbol"), (a) => Symbol.for(a)],
         [Symbol.for("symbol?"), (a) => typeof a ==="symbol"],
         [Symbol.for("number?"), (a) => typeof a === "number"],
-        [Symbol.for("fn?"), (a) => typeof a === "function"],
+        [Symbol.for("fn?"), (a) => typeof a === "function" && !a.is_macro],
         [Symbol.for("string?"), (a) => typeof a === "string" && !_isKeyword(a)],
-        [Symbol.for("seq"), (a) => {throw new Error("Not implemented")}],
-        [Symbol.for("meta"), (a) => {throw new Error("Not implemented")}],
-        [Symbol.for("with-meta"), (a) => {throw new Error("Not implemented")}],
+        [Symbol.for("seq"), (a) => a ? a.length === 0 ? null : Array.from(a) : null],
+        [Symbol.for("meta"), (a) => 'meta' in a ? a['meta'] : null],
+        [Symbol.for("with-meta"), (a, b) => { let c = _clone(a); c.meta = b; return c }],
+        [Symbol.for("macro?"), (a) => a.is_macro === true ? true : false],
 
         [Symbol.for("apply"), (a, ...b) => a(...(b.slice(0,-1).concat(Array.from(b[b.length -1]))))],
         [Symbol.for("map"), (a, b) => Array.from(b.map(t => a(t)))],

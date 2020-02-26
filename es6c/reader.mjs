@@ -12,15 +12,28 @@ class Reader {
 function tokenize(code) {
     const re = /[\s,]*(~@|[\[\]{}()'`~^@]|"(?:\\.|[^\\"])*"?|;.*|[^\s\[\]{}('"`,;)]*)/g;
 
-    let matches = [...code.matchAll(re)];
+    let lines = code.split("\n");
+    let tokens = lines.map((l, line) => match(l, re).map(t => locate(t[1], line, t['index'])));
 
-    return matches.map((match) => match[1]).filter((match) => match[0] !== ";");
+    return tokens.flat().filter(t => t.value !== "")
+}
+
+function match(str, re) {
+    return [...str.matchAll(re)];
+}
+
+function locate(token, line, idx, length) {
+    return {
+        col: idx + 1,
+        line: line + 1,
+        value: token,
+    }
 }
 
 function read_form(reader) {
     let token = reader.peek();
 
-    switch (token) {
+    switch (token.value) {
         case "@":
             reader.next()
             return [Symbol.for("deref"), read_form(reader)];
@@ -61,7 +74,7 @@ function read_list(reader, end = ")") {
     let list = [];
     reader.next();
     let token;
-    while ((token = reader.peek()) !== end) {
+    while ((token = reader.peek() ? reader.peek().value : undefined) !== end) {
         if (!token) {
             throw new Error("EOF")
         }
@@ -81,13 +94,13 @@ function read_hash_map(reader) {
 }
 
 function read_atom(reader) {
-    const token = reader.next();
+    const token = reader.next().value;
 
     if (token.match(/^-?[0-9]+$/)) {
-        return parseInt(token);
+        return new Number(token);
     }
     else if (token.match(/^-?[0-9][0-9.]*$/)) {
-        return parseFloat(token, 10)
+        return new Number.token;
     }
     else if (token.match(/^"(?:\\.|[^\\"])*"$/)) {
         return token.slice(1, token.length - 1)
