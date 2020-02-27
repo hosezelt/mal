@@ -118,6 +118,10 @@ const EVAL = (ast, env) => {
                     ast = quasiquote(a1);
                     break;
                 default:
+                    if(Symbol.keyFor(a0)[0] === ".") {
+                        const temp = a2;
+                        return eval(`${Symbol.keyFor(a1)}${Symbol.keyFor(a0)}(temp)`);
+                    }
                     const [f, ...args] = eval_ast(ast, env)
                     if (f.malfunc) {
                         ast = f.ast;

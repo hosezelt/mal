@@ -4,6 +4,10 @@ import { read_str } from "./reader.mjs"
 import { pr_str } from "./printer.mjs"
 import { _isList } from "./types.mjs"
 import * as escodegen from "escodegen"
+import { snakeToCamel } from "./utils.mjs"
+
+global.list = (...a) => [...a];
+global.isList = (a) => _isList(a);
 
 const { readline } = rl;
 const writer = {
@@ -111,10 +115,7 @@ const COMPILE = (ast, env) => {
                 kind: "var",
                 declarations: [{
                     type: "VariableDeclarator",
-                    id: {
-                        type: "Identifier",
-                        name: Symbol.keyFor(ast[1])
-                    },
+                    id: COMPILE(ast[1]),
                     init: COMPILE(ast[2], env)
                 }
                 ]
@@ -191,7 +192,7 @@ const compile_ast = (ast, env) => {
         }
         return {
             type: 'Identifier',
-            name: Symbol.keyFor(ast)
+            name: snakeToCamel(Symbol.keyFor(ast))
         }
     }
     else {
@@ -205,7 +206,7 @@ const compile_ast = (ast, env) => {
         }
             : {
                 type: "Literal",
-                value: ast.valueOf()
+                value: ast === undefined ? null : ast && ast.valueOf()
             }
     }
 }
@@ -224,7 +225,9 @@ const repl_env = new Map(
         [Symbol.for(">"), ">"],
         [Symbol.for("<"), "<"],
         [Symbol.for("and"), "&&"],
-        [Symbol.for("or"), "||"]
+        [Symbol.for("or"), "||"],
+        [Symbol.for("list"), "list"],
+        [Symbol.for("list?"), "isList"]
     ]
 )
 
