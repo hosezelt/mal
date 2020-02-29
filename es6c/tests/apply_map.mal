@@ -1,0 +1,47 @@
+;
+; Test apply with Mal functions
+;
+(def! f1 (fn* [x y] (+ x y)))
+(println f1)
+;; EXPECTED: #<function args=(x y)>
+
+(println (apply f1 [3 4]))
+;; EXPECTED: 7
+(println (apply f1 3 4 []))
+;; EXPECTED: 7
+(println (apply f1 3 [4]))
+;; EXPECTED: 7
+
+;
+; Test apply with native functions
+;
+(println +)
+;; EXPECTED: #<native-function mal_add args=(a b)>
+
+(println (apply + [3 4]))
+;; EXPECTED: 7
+(println (apply + 3 4 []))
+;; EXPECTED: 7
+(println (apply + 3 [4]))
+;; EXPECTED: 7
+
+(println (apply count [[2 4 6]]))
+;; EXPECTED: 3
+
+;
+; Test map with Mal functions
+;
+(def! add3 (fn* [a] (+ 3 a)))
+
+(println (map add3 [5 6 7 8]))
+;; EXPECTED: (8 9 10 11)
+(println (map add3 []))
+;; EXPECTED: ()
+
+;
+; Test map with native functions
+;
+(println (map count [[5 6] [7] [] [8 9 10 11]]))
+;; EXPECTED: (2 1 0 4)
+(println (map count (list)))
+;; EXPECTED: ()

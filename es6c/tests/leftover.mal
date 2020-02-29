@@ -1,0 +1,10 @@
+(def! a 2)
+;; EXPECTED: 2
+
+(def! a 1)
+(println (+ 2 a))
+;; EXPECTED: 2
+;; EXPECTED: 3
+
+(println (+ (+ 1 2) 2))
+;; EXPECTED: 5

@@ -15,7 +15,7 @@ function tokenize(code) {
     let lines = code.split("\n");
     let tokens = lines.map((l, line) => match(l, re).map(t => locate(t[1], line, t['index'])));
 
-    return tokens.flat().filter(t => t.value !== "")
+    return tokens.flat().filter(t => t.value !== "" && t.value[0] !== ";")
 }
 
 function match(str, re) {
@@ -132,5 +132,10 @@ export function read_str(code) {
     if (tokens.length === 0) throw new Error("Input Expected");
     let reader = new Reader(tokens);
 
-    return read_form(reader);
+    let forms = [];
+    while(reader.peek() && reader.peek().value) {
+        forms.push(read_form(reader))
+    }
+
+    return forms
 }

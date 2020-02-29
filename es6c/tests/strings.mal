@@ -1,0 +1,59 @@
+(prn (str 98765))
+;; EXPECTED: "98765"
+(println 13579)
+;; EXPECTED: 13579
+
+(println 'mysymbol)
+;; EXPECTED: mysymbol
+(println :mykeyword)
+;; EXPECTED: :mykeyword
+(println "my string")
+;; EXPECTED: my string
+(prn "my string")
+;; EXPECTED: "my string"
+(println "first\nsecond\nthird")
+;; EXPECTED: first
+;; EXPECTED: second
+;; EXPECTED: third
+(println (count (seq "first\nsecond\nthird")))
+;; EXPECTED: 18
+(prn "first\nsecond\nthird\nbacksash \\ and quotes \" the end")
+;; EXPECTED: "first\nsecond\nthird\nbacksash \\ and quotes \" the end"
+
+(println '(123 456 789))
+;; EXPECTED: (123 456 789)
+(println [123 456 789])
+;; EXPECTED: [123 456 789]
+(println {:a 123})
+;; EXPECTED: {:a 123}
+
+(prn (atom 1234))
+;; EXPECTED: (atom 1234)
+(prn (atom "abc"))
+;; EXPECTED: (atom "abc")
+
+;; Testing string? function
+(prn (string? ""))
+;; EXPECTED: true
+(prn (string? 'abc))
+;; EXPECTED: false
+(prn (string? "abc"))
+;; EXPECTED: true
+(prn (string? :abc))
+;; EXPECTED: false
+(prn (string? (keyword "abc")))
+;; EXPECTED: false
+(prn (string? 234))
+;; EXPECTED: false
+(prn (string? nil))
+;; EXPECTED: false
+
+;; Testing keyword / symbol
+(prn (keyword "abc"))
+;; EXPECTED: :abc
+(prn (keyword? (keyword "abc")))
+;; EXPECTED: true
+(prn (symbol "abc"))
+;; EXPECTED: abc
+(prn (symbol? (symbol "abc")))
+;; EXPECTED: true

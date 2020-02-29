@@ -1,0 +1,16 @@
+;; Testing evaluation of arithmetic operations
+
+(println (+ 1 2))
+;; EXPECTED: 3
+
+(println (+ 5 (* 2 3)))
+;; EXPECTED: 11
+
+(println (- (+ 5 (* 2 3)) 3))
+;; EXPECTED: 8
+
+(println (/ (- (+ 5 (* 2 3)) 3) 4))
+;; EXPECTED: 2
+
+(println (/ (- (+ 515 (* 222 311)) 302) 27))
+;; EXPECTED: 2565

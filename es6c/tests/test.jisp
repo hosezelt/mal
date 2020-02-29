@@ -1,0 +1,55 @@
+(def! p (fn* [] (println "hello world")))
+(p)
+;; EXPECTED: hello world
+
+(def! f (fn* [x y] (* y (+ 1 x))))
+(println f)
+;; EXPECTED: #<function args=(x y)>
+(println (f 3 4))
+;; EXPECTED: 16
+(println (f 2 5))
+;; EXPECTED: 15
+(println (f (f 3 5) (- 6 2)))
+;; EXPECTED: 84
+
+(def! f2 (fn* [x y] (do (prn "f2:" x y) (* y (+ 1 x)))))
+(println (f2 (f2 3 5) (- 6 2)))
+;; EXPECTED: "f2:" 3 5
+;; EXPECTED: "f2:" 20 4
+;; EXPECTED: 84
+
+(println ((fn* [a] (+ a 55)) 22))
+;; EXPECTED: 77
+(println ( (fn* (a b) (+ b a)) 3 4))
+;; EXPECTED: 7
+(println ( (fn* () 4) ))
+;; EXPECTED: 4
+(println ( (fn* (f x) (f x)) (fn* (a) (+ 1 a)) 7))
+;; EXPECTED: 8
+
+;; Testing closures
+(println ( ( (fn* (a) (fn* (b) (+ a b))) 5) 7))
+;; EXPECTED: 12
+(def! gen-plus5 (fn* () (fn* (b) (+ 5 b))))
+(def! plus5 (gen-plus5))
+(println (plus5 7))
+;; EXPECTED: 12
+(def! gen-plusX (fn* (x) (fn* (b) (+ x b))))
+(def! plus7 (gen-plusX 7))
+(println (plus7 8))
+;; EXPECTED: 15
+
+;; Testing variable length arguments
+
+(println ( (fn* (& more) (count more)) 1 2 3))
+;; EXPECTED: 3
+(println ( (fn* (& more) (count more)) 1))
+;; EXPECTED: 1
+(println ( (fn* (& more) (count more)) ))
+;; EXPECTED: 0
+(println ( (fn* (a & more) (count more)) 1 2 3))
+;; EXPECTED: 2
+(println ( (fn* (a & more) (count more)) 1))
+;; EXPECTED: 0
+(println ( (fn* (a & more) [a more]) 1 2 3))
+;; EXPECTED: [1 (2 3)]

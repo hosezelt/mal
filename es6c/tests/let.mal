@@ -1,0 +1,38 @@
+(def! x 4)
+(println x)
+;; EXPECTED: 4
+
+(println (let* (z 9) z))
+;; EXPECTED: 9
+(println (let* (x 9) x))
+;; EXPECTED: 9
+(println x)
+;; EXPECTED: 4
+
+(println (let* (z (+ 2 3)) (+ 1 z)))
+;; EXPECTED: 6
+(println (let* (p (+ 2 3) q (+ 2 p)) (+ p q)))
+;; EXPECTED: 12
+
+;; Testing outer environment
+(def! a 4)
+(println (let* (q 9) q))
+;; EXPECTED: 9
+(println (let* (q 9) a))
+;; EXPECTED: 4
+(println (let* (z 2) (let* (q 9) a)))
+;; EXPECTED: 4
+
+;; Testing let* with vector bindings
+(println (let* [z 9] z))
+;; EXPECTED: 9
+(println (let* [p (+ 2 3) q (+ 2 p)] (+ p q)))
+;; EXPECTED: 12
+
+;; Testing vector evaluation
+(println (let* (a 5 b 6) [3 4 a [b 7] 8]))
+;; EXPECTED: [3 4 5 [6 7] 8]
+
+;; Testing let* recursive functions evaluation
+(println (let* [iter (fn* [n sum] (if (<= n 0) sum (iter (- n 1) (+ sum n))))] (iter 10 0)))
+;; EXPECTED: 55

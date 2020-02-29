@@ -1,0 +1,12 @@
+(prn *host-language*)
+;; EXPECTED: "malc"
+
+(println (string? *ARGV0*))
+;; EXPECTED: true
+(println (not (= "" *ARGV0*)))
+;; EXPECTED: true
+
+(println (list? *ARGV*))
+;; EXPECTED: true
+(println (count *ARGV*))
+;; EXPECTED: 0

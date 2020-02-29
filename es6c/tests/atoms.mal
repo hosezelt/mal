@@ -1,0 +1,62 @@
+(def! atm ( atom 7 ))
+(println atm)
+;; EXPECTED: (atom 7)
+(println (deref atm))
+;; EXPECTED: 7
+(println @atm)
+;; EXPECTED: 7
+
+(println (reset! atm 13))
+;; EXPECTED: 13
+(println atm)
+;; EXPECTED: (atom 13)
+(println (deref atm))
+;; EXPECTED: 13
+(println @atm)
+;; EXPECTED: 13
+
+(println (atom? atm))
+;; EXPECTED: true
+(println (atom? 13))
+;; EXPECTED: false
+
+(println (= atm (atom 13)))
+;; EXPECTED: true
+(println (= atm 13))
+;; EXPECTED: false
+
+(println (deref (atom 9)))
+;; EXPECTED: 9
+
+;
+; Test swap!
+;
+(def! inc3 (fn* (a) (+ 3 a)))
+(def! a (atom 3))
+
+(println (swap! a inc3))
+;; EXPECTED: 6
+
+(println (deref a))
+;; EXPECTED: 6
+
+(println (swap! a (fn* (a) a)))
+;; EXPECTED: 6
+
+(println (swap! a (fn* (a) (* 2 a))))
+;; EXPECTED: 12
+
+(println (swap! a (fn* (a b) (* a b)) 10))
+;; EXPECTED: 120
+
+(println (swap! a + 3))
+;; EXPECTED: 123
+
+;; Testing swap!/closure interaction
+(def! inc-it (fn* (a) (+ 1 a)))
+(def! atm (atom 7))
+(def! f (fn* [] (swap! atm inc-it)))
+(println (f))
+;; EXPECTED: 8
+(println (f))
+;; EXPECTED: 9

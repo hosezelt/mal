@@ -1,0 +1,14 @@
+(def! a 11)
+(println a)
+;; EXPECTED: 11
+
+(def! b (+ 20 3))
+(println (+ a b))
+;; EXPECTED: 34
+
+(def! a 9)
+(println a)
+;; EXPECTED: 9
+
+(println (+ a b))
+;; EXPECTED: 32

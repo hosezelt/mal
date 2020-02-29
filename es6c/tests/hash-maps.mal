@@ -1,0 +1,51 @@
+(def! hm (hash-map :a 11 :b 22 :c 33))
+
+(println (get hm :a))
+;; EXPECTED: 11
+(println (get hm :b))
+;; EXPECTED: 22
+(println (get hm :c))
+;; EXPECTED: 33
+(println (get hm :z))
+;; EXPECTED: nil
+(println (get nil :z))
+;; EXPECTED: nil
+
+(println (contains? hm :b))
+;; EXPECTED: true
+(println (contains? hm :z))
+;; EXPECTED: false
+
+(println hm)
+;; EXPECTED: {:a 11 :b 22 :c 33}
+
+(println (assoc hm :d 44))
+;; EXPECTED: {:a 11 :b 22 :c 33 :d 44}
+(println (assoc hm :a 55))
+;; EXPECTED: {:b 22 :c 33 :a 55}
+(println (assoc hm :z 44 :b 55 :y 66))
+;; EXPECTED: {:a 11 :c 33 :z 44 :b 55 :y 66}
+(println hm)
+;; EXPECTED: {:a 11 :b 22 :c 33}
+
+(println (dissoc hm :b))
+;; EXPECTED: {:a 11 :c 33}
+(println (dissoc hm :z))
+;; EXPECTED: {:a 11 :b 22 :c 33}
+(println (dissoc hm :a :z :c))
+;; EXPECTED: {:b 22}
+(println (dissoc hm :a :c :b))
+;; EXPECTED: {}
+(println hm)
+;; EXPECTED: {:a 11 :b 22 :c 33}
+
+(println (keys hm))
+;; EXPECTED: (:a :b :c)
+(println (vals hm))
+;; EXPECTED: (11 22 33)
+
+(println { :a  11 })
+;; EXPECTED: {:a 11}
+
+(println {  })
+;; EXPECTED: {}

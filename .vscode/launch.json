@@ -36,12 +36,13 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Repl",
-            "program": "${workspaceFolder}/es6c/step4_if_fn_do.mjs",
+            "program": "${workspaceFolder}/es6c/step8_macros.mjs",
             "runtimeExecutable": "${env:HOME}/.nvm/versions/node/v12.14.1/bin/node",
             "runtimeArgs": [
                 "-r",
                 "esm"
             ],
+            "args": ["-c", "tests/test.jisp"],
             "console": "integratedTerminal",
             "cwd": "${fileDirname}"
         }

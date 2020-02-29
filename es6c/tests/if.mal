@@ -1,0 +1,11 @@
+(println (if (keyword? :abc) 111 222))
+;; EXPECTED: 111
+
+(println (if (keyword? "abc") 111 222))
+;; EXPECTED: 222
+
+(println (if (keyword? "abc") 111))
+;; EXPECTED: nil
+
+(println (cond (keyword? "abc") 111 (symbol? "abc") 222 :else 333))
+;; EXPECTED: 333

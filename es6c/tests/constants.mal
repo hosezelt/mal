@@ -1,0 +1,22 @@
+;; Testing printing of constants
+
+(println nil)
+;; EXPECTED: nil
+
+(println false)
+;; EXPECTED: false
+
+(println true)
+;; EXPECTED: true
+
+(println 'symbol1234567)
+;; EXPECTED: symbol1234567
+
+(println "string12345")
+;; EXPECTED: string12345
+
+(prn "string12345")
+;; EXPECTED: "string12345"
+
+(println :keyword123)
+;; EXPECTED: :keyword123

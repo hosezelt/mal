@@ -1,0 +1,15 @@
+;
+; Verify that trivial work takes less than 100 millisecs
+;
+(println "Start")
+(let* [start (time-ms)]
+  (do
+    (println "Working")
+    (println (* 1000 1000))
+    (println "Done")
+    (println (< (- (time-ms) start) 100))))
+;; EXPECTED: Start
+;; EXPECTED: Working
+;; EXPECTED: 1000000
+;; EXPECTED: Done
+;; EXPECTED: true

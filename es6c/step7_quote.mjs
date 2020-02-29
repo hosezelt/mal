@@ -5,6 +5,7 @@ import { pr_str } from "./printer.mjs"
 import { _isList, _equal, Vector } from "./types.mjs"
 import * as escodegen from "escodegen"
 import { snakeToCamel } from "./utils.mjs"
+import commander from "commander"
 
 global.list = (...a) => [...a];
 global.isList = (a) => _isList(a);
@@ -309,12 +310,17 @@ const repl_env = new Map(
     ]
 )
 
+let pathVal;
+const program = new commander.Command()
+program
+  .option('-c, --compile, <path>', 'compile a file')
+  .action((cmd, path) => {pathVal = path})
 
+program.parse(process.argv);
 
+console.log(pathVal)
 // repl
 const REP = str => PRINT(eval(escodegen.generate(COMPILE(READ(str), repl_env))));
-
-
 
 while (true) {
 

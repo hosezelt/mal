@@ -1,0 +1,10 @@
+(+ 1 2)
+;; EXPECTED 3
+
+(def! a 19)
+(println a)
+;; EXPECTED: 19
+
+(def! b (fn* [a] (+ a 2)))
+(println (b 2))
+;; EXPECTED: 4

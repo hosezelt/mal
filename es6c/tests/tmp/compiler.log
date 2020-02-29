@@ -1,0 +1,8 @@
+[
+  Symbol(do),
+  [ Symbol(+), 1, 2 ],
+  [ Symbol(def!), Symbol(a), 19 ],
+  [ Symbol(println), Symbol(a) ],
+  [ Symbol(def!), Symbol(b), [ Symbol(fn*), [Vector], [Array] ] ],
+  [ Symbol(println), [ Symbol(b), 2 ] ]
+]

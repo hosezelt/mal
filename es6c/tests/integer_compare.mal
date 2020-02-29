@@ -1,0 +1,19 @@
+(println (> 8 8))
+;; EXPECTED: false
+(println (> 9 8))
+;; EXPECTED: true
+
+(println (>= 8 8))
+;; EXPECTED: true
+(println (>= 9 8))
+;; EXPECTED: true
+
+(println (< 8 8))
+;; EXPECTED: false
+(println (< 7 8))
+;; EXPECTED: true
+
+(println (<= 8 8))
+;; EXPECTED: true
+(println (<= 7 8))
+;; EXPECTED: true

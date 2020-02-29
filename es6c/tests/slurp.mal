@@ -1,0 +1,14 @@
+(def! content (slurp "tests/slurp_test.txt"))
+
+; The file size
+(println (count (seq content)))
+;; EXPECTED: 66
+
+(println content)
+;; EXPECTED: Hello
+;; EXPECTED: This is a file
+;; EXPECTED: used to test
+;; EXPECTED: the slurp function
+;; EXPECTED: of Mal.
+;; EXPECTED: Bye!
+;; EXPECTED:
