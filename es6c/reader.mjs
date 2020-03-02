@@ -1,4 +1,4 @@
-import { Vector, _hashMap, _keyword } from "./types.mjs"
+import { List, Vector, _hashMap, _keyword } from "./types.mjs"
 
 class Reader {
     constructor(tokens) {
@@ -82,7 +82,7 @@ function read_list(reader, end = ")") {
         list.push(item);
     }
     reader.next();
-    return list;
+    return List.from(list);
 }
 
 function read_vector(reader) {

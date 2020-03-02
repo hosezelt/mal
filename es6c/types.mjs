@@ -1,6 +1,18 @@
-export const _isList = (obj) => Array.isArray(obj) && !(obj instanceof Vector) && !(_isKeyword(obj));
+export const _isList = (obj) =>  obj && obj instanceof List && obj.type === "list";
 
-export class Vector extends Array { };
+export class List extends Array { 
+    constructor() {
+        super();
+        this.type = "list";
+    }
+}
+
+export class Vector extends Array { 
+    constructor() {
+        super();
+        this.type = "array";
+    }
+};
 
 export function _hashMap(hm, ...args) {
     if (args.length % 2 === 1) {

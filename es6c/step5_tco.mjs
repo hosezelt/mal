@@ -1,10 +1,13 @@
 
 import rl from './node_readline.js'
+import fs from 'fs'
+import path from 'path'
 import { read_str } from "./reader.mjs"
 import { pr_str } from "./printer.mjs"
 import { _isList, _equal, Vector } from "./types.mjs"
 import * as escodegen from "escodegen"
 import { snakeToCamel } from "./utils.mjs"
+import commander from "commander"
 
 global.list = (...a) => [...a];
 global.isList = (a) => _isList(a);
@@ -55,8 +58,8 @@ const writer = { //Native fns
         return {
             type: "LogicalExpression",
             operator: "&&",
-            left: a,
-            right: b
+            left: a || false,
+            right: b || false
         }
     },
     'not': (a) => {
@@ -242,9 +245,9 @@ const COMPILE = (ast, env) => {
         }
 
         return {
-            type: "CallExpression",
-            callee: f,
-            arguments: args,
+                type: "CallExpression",
+                callee: f,
+                arguments: args,
         }
     }
 }
@@ -309,12 +312,35 @@ const repl_env = new Map(
     ]
 )
 
+const program = new commander.Command()
+program
+    .option('-c, --compile <path>', 'compile a file')
+    .option('-o, --output <path>', 'output location of compiled file')
 
+program.parse(process.argv);
+
+const fullFilePath = process.argv[1];
+const dirPath = path.dirname(fullFilePath);
 
 // repl
 const REP = str => PRINT(eval(escodegen.generate(COMPILE(READ(str), repl_env))));
 
+if (program.compile) {
+    const source = fs.readFileSync(path.resolve(dirPath, program.compile), "utf-8");
+    let forms = readString(source);
+    const ast = forms.map(form => COMPILE(form));
+    let programast = ast.map(statement => statement.type === "CallExpression" ? {type: "ExpressionStatement", expression: statement} : statement)
+    let code = escodegen.generate({
+        type: "Program",
+        body: programast
 
+    });
+
+    const outputPath = program.output ? path.resolve(dirPath, program.output) : path.resolve(dirPath, path.dirname(program.compile), path.basename(program.compile, ".jisp") + ".js")
+
+    fs.writeFileSync(outputPath, code);
+    process.exit(0);
+}
 
 while (true) {
 
@@ -322,16 +348,13 @@ while (true) {
     if (line == null) break
     try {
         if (line) {
-            let form = READ(line);
-            let ast = COMPILE(form);
+            let forms = READ(line);
+            let ast = forms.map(form => COMPILE(form));
+            let programast = ast.map(statement => statement.type === "CallExpression" ? {type: "ExpressionStatement", expression: statement} : statement)
             let code = escodegen.generate({
                 type: "Program",
-                body: [
-                    {
-                        type: "ExpressionStatement",
-                        expression: ast
-                    }
-                ]
+                body: programast
+        
             });
             let res = eval.call(process, code);
             console.log(PRINT(res));

@@ -4,12 +4,12 @@ import fs from 'fs'
 import path from 'path'
 import { read_str } from "./reader.mjs"
 import { pr_str } from "./printer.mjs"
-import { _isList, _equal, Vector } from "./types.mjs"
+import { _isList, _equal, Vector, List } from "./types.mjs"
 import * as escodegen from "escodegen"
 import { snakeToCamel } from "./utils.mjs"
 import commander from "commander"
 
-global.list = (...a) => [...a];
+global.list = (...a) => List.from([...a]);
 global.isList = (a) => _isList(a);
 global._equal = _equal;
 global.isEmpty = (a) => a.length === 0;
@@ -19,6 +19,7 @@ global.prStr = (...a) => a.map(s => pr_str(s, true)).join(" ");
 global.str = (...a) => a.map(s => pr_str(s, false)).join("");
 global.println = (...a) => console.log(...a.map(s => pr_str(s, false))) || null
 global.readString = (a) => read_str(a);
+global.Vector = Vector;
 
 const { readline } = rl;
 const writer = { //Native fns
@@ -245,9 +246,11 @@ const COMPILE = (ast, env) => {
         }
 
         return {
-                type: "CallExpression",
-                callee: f,
-                arguments: args,
+
+            type: "CallExpression",
+            callee: f,
+            arguments: args,
+
         }
     }
 }
@@ -255,8 +258,23 @@ const COMPILE = (ast, env) => {
 const compile_ast = (ast, env) => { //Data types
     if (ast instanceof Vector) {
         return {
-            type: "ArrayExpression",
-            elements: ast.map(token => COMPILE(token, env))
+            type: "CallExpression",
+            callee: {
+                type: "MemberExpression",
+                object: {
+                    type: "Identifier",
+                    name: "Vector"
+                },
+                property: {
+                    type: "Identifier",
+                    name: "from"
+                }
+            },
+            arguments: [{
+                type: "ArrayExpression",
+                elements: ast.map(token => COMPILE(token, env))
+            }]
+
         }
     }
     if (Array.isArray(ast)) {
@@ -329,10 +347,9 @@ if (program.compile) {
     const source = fs.readFileSync(path.resolve(dirPath, program.compile), "utf-8");
     let forms = readString(source);
     const ast = forms.map(form => COMPILE(form));
-    let programast = ast.map(statement => statement.type === "CallExpression" ? {type: "ExpressionStatement", expression: statement} : statement)
     let code = escodegen.generate({
         type: "Program",
-        body: programast
+        body: ast
 
     });
 
