@@ -1,4 +1,4 @@
-import { Vector, _isList, _isKeyword, Atom } from "./types.mjs"
+import { _isList, _isKeyword, Atom } from "./types.mjs"
 
 export function pr_str(malType, printReadably) {
     if (typeof printReadably === 'undefined') { printReadably = true }
@@ -7,7 +7,7 @@ export function pr_str(malType, printReadably) {
         let str = malType.map(token => pr_str(token, _r)).join(" ");
         return `(${str})`
     }
-    else if (malType instanceof Vector) {
+    else if (malType instanceof Array) {
         let str = malType.map(token => pr_str(token, _r)).join(" ");
         return `[${str}]`
     }

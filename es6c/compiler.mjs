@@ -1,16 +1,13 @@
 
-import rl from './node_readline.js'
-import fs from 'fs'
-import path from 'path'
 import { read_str } from "./reader.mjs"
 import { pr_str } from "./printer.mjs"
-import { _isList, _equal, Vector, List } from "./types.mjs"
+import { _isList, _equal, List, _isVector } from "./types.mjs"
 import * as escodegen from "escodegen"
 import { snakeToCamel } from "./utils.mjs"
-import commander from "commander"
 
 global.list = (...a) => List.from([...a]);
 global.isList = (a) => _isList(a);
+global.isVector = (a) => _isVector(a);
 global._equal = _equal;
 global.isEmpty = (a) => a.length === 0;
 global.count = (a) => a ? a.length : 0;
@@ -19,9 +16,7 @@ global.prStr = (...a) => a.map(s => pr_str(s, true)).join(" ");
 global.str = (...a) => a.map(s => pr_str(s, false)).join("");
 global.println = (...a) => console.log(...a.map(s => pr_str(s, false))) || null
 global.readString = (a) => read_str(a);
-global.Vector = Vector;
 
-const { readline } = rl;
 const writer = { //Native fns
     '+': (a, b) => {
         return {
@@ -113,8 +108,6 @@ const writer = { //Native fns
         }
     },
 }
-// read
-const READ = str => read_str(str)
 
 const compile_params = (ast) => {
     let compiled_ast = [];
@@ -188,6 +181,26 @@ const COMPILE = (ast, env) => {
                 ]
             }
         }
+        if (ast[0] === Symbol.for(":require")) {
+            return {
+                type: "ImportDeclaration",
+                specifiers: [
+                    { type: "ImportDefaultSpecifier"}
+                ],
+                declarations: [{
+                    type: "VariableDeclarator",
+                    id: COMPILE(ast[1]),
+                    init: COMPILE(ast[2], env)
+                }
+                ]
+            }
+        }
+        if (ast[0] === Symbol.for("quote")) {
+            return {
+                type: "Literal",
+                value: prStr(ast[1])
+            }
+        }
         if (ast[0] === Symbol.for("do")) {
             return {
                 type: "CallExpression",
@@ -246,7 +259,6 @@ const COMPILE = (ast, env) => {
         }
 
         return {
-
             type: "CallExpression",
             callee: f,
             arguments: args,
@@ -256,25 +268,10 @@ const COMPILE = (ast, env) => {
 }
 
 const compile_ast = (ast, env) => { //Data types
-    if (ast instanceof Vector) {
+    if (_isVector(ast)) {
         return {
-            type: "CallExpression",
-            callee: {
-                type: "MemberExpression",
-                object: {
-                    type: "Identifier",
-                    name: "Vector"
-                },
-                property: {
-                    type: "Identifier",
-                    name: "from"
-                }
-            },
-            arguments: [{
-                type: "ArrayExpression",
-                elements: ast.map(token => COMPILE(token, env))
-            }]
-
+            type: "ArrayExpression",
+            elements: ast.map(token => COMPILE(token, env))
         }
     }
     if (Array.isArray(ast)) {
@@ -310,73 +307,15 @@ const compile_ast = (ast, env) => { //Data types
     }
 }
 
-
-// print
-const PRINT = exp => pr_str(exp)
-
-const repl_env = new Map(
-    [
-        [Symbol.for("+"), "+"],
-        [Symbol.for("-"), "-"],
-        [Symbol.for("*"), "*"],
-        [Symbol.for("/"), "/"],
-        [Symbol.for("="), "==="],
-        [Symbol.for(">"), ">"],
-        [Symbol.for("<"), "<"],
-        [Symbol.for("and"), "&&"],
-        [Symbol.for("or"), "||"],
-        [Symbol.for("list"), "list"],
-        [Symbol.for("list?"), "isList"]
-    ]
-)
-
-const program = new commander.Command()
-program
-    .option('-c, --compile <path>', 'compile a file')
-    .option('-o, --output <path>', 'output location of compiled file')
-
-program.parse(process.argv);
-
-const fullFilePath = process.argv[1];
-const dirPath = path.dirname(fullFilePath);
-
-// repl
-const REP = str => PRINT(eval(escodegen.generate(COMPILE(READ(str), repl_env))));
-
-if (program.compile) {
-    const source = fs.readFileSync(path.resolve(dirPath, program.compile), "utf-8");
-    let forms = readString(source);
+export const compileProgram = (str) => {
+    let forms = readString(str);
     const ast = forms.map(form => COMPILE(form));
     let code = escodegen.generate({
         type: "Program",
         body: ast
 
     });
-
-    const outputPath = program.output ? path.resolve(dirPath, program.output) : path.resolve(dirPath, path.dirname(program.compile), path.basename(program.compile, ".jisp") + ".js")
-
-    fs.writeFileSync(outputPath, code);
-    process.exit(0);
+    return code;
 }
 
-while (true) {
-
-    let line = readline('user> ')
-    if (line == null) break
-    try {
-        if (line) {
-            let forms = READ(line);
-            let ast = forms.map(form => COMPILE(form));
-            let code = escodegen.generate({
-                type: "Program",
-                body: ast
-            });
-            let res = eval.call(process, code);
-            console.log(PRINT(res));
-        }
-    }
-    catch (exc) {
-        console.warn(`Error: ${exc}`)
-    }
-
-}
+export const PRINT = exp => pr_str(exp)

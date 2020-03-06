@@ -1,18 +1,17 @@
 export const _isList = (obj) =>  obj && obj instanceof List && obj.type === "list";
 
+export const _isVector = (obj) =>  Object.prototype.toString.call(obj) === "[object Array]";
+
 export class List extends Array { 
     constructor() {
         super();
         this.type = "list";
     }
-}
 
-export class Vector extends Array { 
-    constructor() {
-        super();
-        this.type = "array";
-    }
-};
+    get [Symbol.toStringTag]() {
+        return 'List';
+      }
+}
 
 export function _hashMap(hm, ...args) {
     if (args.length % 2 === 1) {
@@ -56,8 +55,8 @@ export function _clone(obj, new_meta) {
     let new_obj = null
     if (_isList(obj)) {
         new_obj = obj.slice(0)
-    } else if (obj instanceof Vector) {
-        new_obj = Vector.from(obj)
+    } else if (obj instanceof Array) {
+        new_obj = Array.from(obj)
     } else if (obj instanceof Map) {
         new_obj = new Map(obj.entries())
     } else if (obj instanceof Function) {

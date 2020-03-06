@@ -1,4 +1,4 @@
-import { List, Vector, _hashMap, _keyword } from "./types.mjs"
+import { List, _hashMap, _keyword } from "./types.mjs"
 
 class Reader {
     constructor(tokens) {
@@ -36,10 +36,10 @@ function read_form(reader) {
     switch (token.value) {
         case "@":
             reader.next()
-            return [Symbol.for("deref"), read_form(reader)];
+            return List.from([Symbol.for("deref"), read_form(reader)]);
         case "'":
             reader.next()
-            return [Symbol.for("quote"), read_form(reader)];
+            return List.from([Symbol.for("quote"), read_form(reader)]);
         case "`":
             reader.next()
             return [Symbol.for("quasiquote"), read_form(reader)];
@@ -86,7 +86,7 @@ function read_list(reader, end = ")") {
 }
 
 function read_vector(reader) {
-    return Vector.from(read_list(reader, "]"));
+    return Array.from(read_list(reader, "]"));
 }
 
 function read_hash_map(reader) {
