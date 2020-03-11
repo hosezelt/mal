@@ -151,7 +151,14 @@ const COMPILE = (ast, env) => {
         return compile_ast(ast, env);
     }
     else if (ast.length === 0) {
-        return ast;
+        return {
+            type: "CallExpression",
+            callee: {
+                type: "Identifier",
+                name: "list"
+            },
+            arguments: []
+        };
     }
     else {  //Special forms
         if (ast[0] === Symbol.for("fn*")) {
@@ -185,7 +192,13 @@ const COMPILE = (ast, env) => {
             return {
                 type: "ImportDeclaration",
                 specifiers: [
-                    { type: "ImportDefaultSpecifier"}
+                    { 
+                        type: "ImportDefaultSpecifier",
+                        local: {
+                            type: "Identifier",
+                            name: compile_ast(ast[1])
+                        }
+                    }
                 ],
                 declarations: [{
                     type: "VariableDeclarator",
@@ -254,7 +267,7 @@ const COMPILE = (ast, env) => {
 
 
         const [f, ...args] = compile_ast(ast, env)
-        if (writer.hasOwnProperty(f.name)) {
+        if (f && writer.hasOwnProperty(f.name)) {
             return writer[f.name](...args);
         }
 
@@ -312,9 +325,11 @@ export const compileProgram = (str) => {
     const ast = forms.map(form => COMPILE(form));
     let code = escodegen.generate({
         type: "Program",
-        body: ast
-
-    });
+        body: ast.map(a => {return { 
+            type: "ExpressionStatement",
+            expression: a
+        }})
+    })
     return code;
 }
 

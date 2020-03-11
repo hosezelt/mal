@@ -2,10 +2,13 @@ import rl from './node_readline.js'
 import fs from 'fs'
 import path from 'path'
 import commander from "commander"
+import vm from "vm"
+import { createRequire } from "module"
+global.require = createRequire(import.meta.url);
+
 const { readline } = rl;
 
 import { compileProgram, PRINT } from "./compiler.mjs"
-
 
 const program = new commander.Command()
 program
@@ -28,6 +31,7 @@ if (program.compile) {
     process.exit(0);
 }
 
+let context = vm.createContext(global);
  
 while (true) {
 
@@ -36,7 +40,7 @@ while (true) {
     try {
         if (line) {
             let code = compileProgram(line);
-            let res = eval.call(process, code);
+            let res = vm.runInContext(code, context);
             console.log(PRINT(res));
         }
     }

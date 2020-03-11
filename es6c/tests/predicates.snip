@@ -1,0 +1,24 @@
+
+
+(println (check nil? [nil]))
+;; EXPECTED: true
+(println (check true? [true]))
+;; EXPECTED: true
+(println (check false? [false]))
+;; EXPECTED: true
+(println (check symbol? ['abc]))
+;; EXPECTED: true
+(println (check string? ["" "abc"]))
+;; EXPECTED: true
+(println (check keyword? [:abc]))
+;; EXPECTED: true
+(println (check number? [-123 0 123]))
+;; EXPECTED: true
+(println (check list? ['() '(1 2 3)]))
+;; EXPECTED: true
+(println (check vector? [[] [1 2 3]]))
+;; EXPECTED: true
+(println (check map? [{} {"a" "b" "c" "d"}]))
+;; EXPECTED: true
+(println (check fn? [+ add1]))
+;; EXPECTED: true
