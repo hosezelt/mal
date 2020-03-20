@@ -1,0 +1,7 @@
+(load-file "./tests/utils.snip")
+
+(is (= 1 2) "should be equal")
+(is (= 1 1) "should be equal")
+
+(println "Passed: " (count (deref *passed*) ))
+(println "Failed: " (count (deref *failed*) ))

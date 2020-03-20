@@ -1,0 +1,18 @@
+(load-file "./tests/utils.snip")
+(load-file "./analyzer.snip")
+
+(def! *value (fn* [value]
+  {:op   :constant
+   :form value}))
+
+(is (= (analyze {} :foo)
+       (*value :foo)))
+
+(is (= (analyze {} '(foo))
+       {:op :invoke
+        :callee (*value 'foo)
+        :form '(foo)
+        :params []}))
+
+(println "Passed: " (count (deref *passed*) ))
+(println "Failed: " (count (deref *failed*) ))

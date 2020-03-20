@@ -8,7 +8,7 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Self Hosted",
-            "program": "${workspaceFolder}/es6/stepA_mal.mjs",
+            "program": "${workspaceFolder}/es6/snip.mjs",
             "runtimeArgs": [
                 "-r",
                 "esm"
@@ -22,8 +22,23 @@
         {
             "type": "node",
             "request": "launch",
+            "name": "Launch Self Snip ",
+            "program": "${workspaceFolder}/es6/snip.mjs",
+            "runtimeArgs": [
+                "-r",
+                "esm"
+            ],
+            "args": [
+                "../snip/snip.snip"
+            ],
+            "console": "integratedTerminal",
+            "cwd": "${fileDirname}"
+        },
+        {
+            "type": "node",
+            "request": "launch",
             "name": "Launch Repl A",
-            "program": "${workspaceFolder}/es6/stepA_mal.mjs",
+            "program": "${workspaceFolder}/es6/snip.mjs",
             "runtimeExecutable": "${env:HOME}/.nvm/versions/node/v12.14.1/bin/node",
             "runtimeArgs": [
                 "-r",
@@ -42,7 +57,7 @@
                 "-r",
                 "esm"
             ],
-            "args": ["-c", "tests/predicates.jisp"],
+            "args": ["-c", "tests/equal.snip"],
             "console": "integratedTerminal",
             "cwd": "${fileDirname}"
         },

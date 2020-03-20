@@ -155,7 +155,7 @@
 (map (fn* (a) (* 2 a)) [1 2 3])
 ;=>(2 4 6)
 
-(map (fn* [& args] (list? args)) [1 2])
+(map (fn* [& args] (vector? args)) [1 2])
 ;=>(true true)
 
 ;; Testing vector functions
@@ -302,11 +302,11 @@
 
 ;;
 ;; Test extra function arguments as Mal List (bypassing TCO with apply)
-(apply (fn* (& more) (list? more)) [1 2 3])
+(apply (fn* (& more) (vector? more)) [1 2 3])
 ;=>true
-(apply (fn* (& more) (list? more)) [])
+(apply (fn* (& more) (vector? more)) [])
 ;=>true
-(apply (fn* (a & more) (list? more)) [1])
+(apply (fn* (a & more) (vector? more)) [1])
 ;=>true
 
 ;>>> soft=True

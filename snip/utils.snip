@@ -1,0 +1,95 @@
+
+(def! _alias_add_implicit
+  (fn* [special added]
+    (fn* [x & xs]
+      (list special x (cons added xs)))))
+
+(defmacro! let  (_alias_add_implicit 'let* 'do))
+(defmacro! when (_alias_add_implicit 'if   'do))
+(defmacro! def  (_alias_add_implicit 'def! 'do))
+(defmacro! fn   (_alias_add_implicit 'fn*  'do))
+(defmacro! defn (_alias_add_implicit 'def! 'fn))
+
+(def! partial (fn* [pfn & args]
+  (fn* [& args-inner]
+    (apply pfn (concat args args-inner)))))
+
+;; Left and right folds.
+
+;; Left fold (f (.. (f (f init x1) x2) ..) xn)
+(def! reduce
+  (fn* (f init xs)
+    ;; f      : Accumulator Element -> Accumulator
+    ;; init   : Accumulator
+    ;; xs     : sequence of Elements x1 x2 .. xn
+    ;; return : Accumulator
+    (if (empty? xs)
+      init
+      (reduce f (f init (first xs)) (rest xs)))))
+
+;; Right fold (f x1 (f x2 (.. (f xn init)) ..))
+;; The natural implementation for `foldr` is not tail-recursive, and
+;; the one based on `reduce` constructs many intermediate functions, so we
+;; rely on efficient `nth` and `count`.
+(def! foldr
+
+  (let* [
+    rec (fn* [f xs acc index]
+      (if (< index 0)
+        acc
+        (rec f xs (f (nth xs index) acc) (- index 1))))
+    ]
+
+    (fn* [f init xs]
+      ;; f      : Element Accumulator -> Accumulator
+      ;; init   : Accumulator
+      ;; xs     : sequence of Elements x1 x2 .. xn
+      ;; return : Accumulator
+      (rec f xs init (- (count xs) 1)))))
+
+;; Like load-file, but will never load the same path twice.
+
+;; This file is normally loaded with `load-file`, so it needs a
+;; different mechanism to neutralize multiple inclusions of
+;; itself. Moreover, the file list should never be reset.
+
+(def! load-file-once
+  (try*
+    load-file-once
+  (catch* _
+    (let* [seen (atom {"../lib/load-file-once.mal" nil})]
+      (fn* [filename]
+        (if (not (contains? @seen filename))
+          (do
+            (swap! seen assoc filename nil)
+            (load-file filename))))))))
+
+;; Rewrite x (a a1 a2) .. (b b1 b2) as
+;;   (b (.. (a x a1 a2) ..) b1 b2)
+;; If anything else than a list is found were `(a a1 a2)` is expected,
+;; replace it with a list with one element, so that `-> x a` is
+;; equivalent to `-> x (list a)`.
+(defmacro! ->
+  (fn* (x & xs)
+    (reduce _iter-> x xs)))
+
+(def! _iter->
+  (fn* [acc form]
+    (if (list? form)
+      `(~(first form) ~acc ~@(rest form))
+      (list form acc))))
+
+;; Like `->`, but the arguments describe functions that are partially
+;; applied with *left* arguments.  The previous result is inserted at
+;; the *end* of the new argument list.
+;; Rewrite x ((a a1 a2) .. (b b1 b2)) as
+;;   (b b1 b2 (.. (a a1 a2 x) ..)).
+(defmacro! ->>
+  (fn* (x & xs)
+     (reduce _iter->> x xs)))
+
+(def! _iter->>
+  (fn* [acc form]
+    (if (list? form)
+      `(~(first form) ~@(rest form) ~acc)
+      (list form acc))))

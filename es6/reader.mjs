@@ -1,4 +1,4 @@
-import { Vector, _hashMap, _keyword } from "./types.mjs"
+import { List, _hashMap, _keyword } from "./types.mjs"
 
 class Reader {
     constructor(tokens) {
@@ -23,23 +23,23 @@ function read_form(reader) {
     switch (token) {
         case "@":
             reader.next()
-            return [Symbol.for("deref"), read_form(reader)];
+            return List.from([Symbol.for("deref"), read_form(reader)]);
         case "'":
             reader.next()
-            return [Symbol.for("quote"), read_form(reader)];
+            return List.from([Symbol.for("quote"), read_form(reader)]);
         case "`":
             reader.next()
-            return [Symbol.for("quasiquote"), read_form(reader)];
+            return List.from([Symbol.for("quasiquote"), read_form(reader)]);
         case "~":
             reader.next()
-            return [Symbol.for("unquote"), read_form(reader)];
+            return List.from([Symbol.for("unquote"), read_form(reader)]);
         case "~@":
             reader.next()
-            return [Symbol.for("splice-unquote"), read_form(reader)];
+            return List.from([Symbol.for("splice-unquote"), read_form(reader)]);
         case "^":
             reader.next()
             var meta = read_form(reader)
-            return [Symbol.for("with-meta"), read_form(reader), meta];
+            return List.from([Symbol.for("with-meta"), read_form(reader), meta]);
         case "(":
             return read_list(reader);
         case ")":
@@ -69,15 +69,15 @@ function read_list(reader, end = ")") {
         list.push(item);
     }
     reader.next();
-    return list;
+    return List.from(list);
 }
 
 function read_vector(reader) {
-    return Vector.from(read_list(reader, "]"));
+    return Array.from(read_list(reader, "]"));
 }
 
 function read_hash_map(reader) {
-    return _hashMap(Object.create({type: "dictionary"}), ...read_list(reader, '}'))
+    return _hashMap(Object.create({__type: "dictionary"}), ...read_list(reader, '}'))
 }
 
 function read_atom(reader) {

@@ -1,0 +1,36 @@
+(def! **writers** (atom {}))
+
+(def! install-writer! 
+  (fn* [op form-ast] 
+    (swap! **writers** assoc op form-ast)))
+
+(def! write-constant 
+  (fn* [form] 
+    {:type :Literal 
+     :value form}))
+(install-writer! :constant write-constant)
+
+(def! write-invoke 
+  (fn* [form]
+    {:invoke :CallExpression
+     :callee (write (:callee form))}))
+(install-writer! :invoke write-invoke)
+
+(def! write-op 
+  (fn* [op form]
+    (let* [writer (get (deref **writers**) op)]
+      (writer form))))
+
+(def! write 
+  (fn* [form]
+  (write-op (:op form) form)))
+
+(defn write_form [form env]
+  {:type "ExpressionStatement" 
+   :expression 
+      {:type "Literal" 
+       :value 1}})
+
+(defn write_ast [forms]
+  {:type "Program"
+   :body (map write_form forms)})

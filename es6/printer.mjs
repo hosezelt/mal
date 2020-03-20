@@ -1,4 +1,4 @@
-import { Vector, _isList, _isKeyword, Atom } from "./types.mjs"
+import { _isList, _keyword, _isKeyword, Atom } from "./types.mjs"
 
 export function pr_str(malType, printReadably) {
     if (typeof printReadably === 'undefined') { printReadably = true }
@@ -7,14 +7,14 @@ export function pr_str(malType, printReadably) {
         let str = malType.map(token => pr_str(token, _r)).join(" ");
         return `(${str})`
     }
-    else if (malType instanceof Vector) {
+    else if (malType instanceof Array) {
         let str = malType.map(token => pr_str(token, _r)).join(" ");
         return `[${str}]`
     }
-    else if (malType && malType.type === "dictionary") {
+    else if (malType && malType.__type === "dictionary") {
         let ret = [];
 
-        Object.entries(malType).forEach(([k,v]) => ret.push(pr_str(k,_r), pr_str(v,_r)));
+        Object.entries(malType).forEach(([k,v]) => ret.push(pr_str(_keyword(k),_r), pr_str(v,_r)));
         return "{" + ret.join(' ') + "}"
     }
     else if (malType instanceof Atom) {
@@ -22,7 +22,7 @@ export function pr_str(malType, printReadably) {
     }
     else if (typeof malType === "string") {
         if (_isKeyword(malType)) {
-            return ":" + malType.slice(1);
+            return ":" + malType;
         }
         else if (_r) {
             return '"' + malType.replace(/\\/g, "\\\\")
@@ -35,6 +35,7 @@ export function pr_str(malType, printReadably) {
     else if (typeof malType === 'symbol') {
         return Symbol.keyFor(malType)
     }
+
     else if (malType === null || malType === undefined) {
         return "nil";
     }
@@ -48,6 +49,9 @@ export function pr_str(malType, printReadably) {
         return "#<function>";
     }
     else{
+        if (_isKeyword(malType)) {
+            return ":" + malType.toString();
+        }
         return malType.toString();
     }
 }

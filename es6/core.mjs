@@ -1,5 +1,5 @@
 import { pr_str } from "./printer.mjs";
-import { _isList, _equal, Atom, Vector, _hashMap, _isKeyword, _keyword, _clone } from "./types.mjs";
+import { _isList, _equal, Atom,  _hashMap, _isKeyword, _keyword, _clone, List } from "./types.mjs";
 import { read_str } from "./reader.mjs";
 import rl from './node_readline.js'
 
@@ -34,16 +34,17 @@ export const ns = new Map(
         
         [Symbol.for("count"), (a) => a ? a.length : 0],
         [Symbol.for("empty?"), (a) => a.length === 0],
-        [Symbol.for("list"), (...a) => [...a]],
+        [Symbol.for("list"), (...a) => List.from([...a])],
         [Symbol.for("list?"), (a) => _isList(a)],
-        [Symbol.for("vector"), (...a) => Vector.from(a)],
-        [Symbol.for("vector?"), (a) => a instanceof Vector],
-        [Symbol.for("cons"), (a, b) => [a].concat(b)],
-        [Symbol.for('conj'), (s,...a) => _isList(s) ? a.reverse().concat(s) : Vector.from(s.concat(a))],
-        [Symbol.for("concat"), (...b) => [].concat(...b)],
+        [Symbol.for("vector"), (...a) => Array.from([...a])],
+        [Symbol.for("vec"), (a) => Array.from(a)],
+        [Symbol.for("vector?"), (a) => Object.prototype.toString.call(a) === "[object Array]"],
+        [Symbol.for("cons"), (a, b) => List.from([a].concat(b))],
+        [Symbol.for('conj'), (s,...a) => _isList(s) ? List.from(a.reverse().concat(s)) : Array.from(s.concat(a))],
+        [Symbol.for("concat"), (...b) => List.from([].concat(...b))],
         [Symbol.for("nth"), (a, b) => b < a.length ? a[b] : _error("nth: index out of range")],
-        [Symbol.for("first"), (a) => a === null ? null : a[0]],
-        [Symbol.for("rest"), (a) => a === null ? [] : Array.from(a.slice(1))],
+        [Symbol.for("first"), (a) => a !== null && a.length > 0 ?  a[0] : null],
+        [Symbol.for("rest"), (a) => a === null ? List.from([]) : List.from(a.slice(1))],
 
         [Symbol.for("atom"), (a, ...b) => new Atom(a)],
         [Symbol.for("atom?"), (a, ...b) => (a instanceof Atom)],
@@ -57,32 +58,32 @@ export const ns = new Map(
         [Symbol.for("keyword"), (a) => _keyword(a)],
         [Symbol.for("keyword?"), (a) => _isKeyword(a)],
 
-        [Symbol.for("hash-map"), (...a) => _hashMap(Object.create({type: "dictionary"}), ...a)],
-        [Symbol.for("map?"), (a) => a  && a.type === "dictionary"],
-        [Symbol.for("assoc"), (a, ...b) => _hashMap(Object.assign(Object.create({type: "dictionary"}), a), ...b) ],
+        [Symbol.for("hash-map"), (...a) => _hashMap(Object.create({__type: "dictionary"}), ...a)],
+        [Symbol.for("map?"), (a) => a  && a.__type === "dictionary"],
+        [Symbol.for("assoc"), (a, ...b) => _hashMap(Object.assign(Object.create({__type: "dictionary"}), a), ...b) ],
         [Symbol.for("dissoc"), (a, ...b) => {
-            let d = Object.assign(Object.create({type: "dictionary"}), a);
+            let d = Object.assign(Object.create({__type: "dictionary"}), a);
             b.forEach(key => delete d[key]);
             return d;
         } ],
-        [Symbol.for("get"), (a, b) => a && a.type === "dictionary" ? a[b] : null],
-        [Symbol.for("contains?"), (a, b) =>  a && a.type === "dictionary" ? a.hasOwnProperty(b) : false],
-        [Symbol.for("keys"), (a) =>  a && a.type === "dictionary"  ? [...Object.keys(a)] : []],
-        [Symbol.for("vals"), (a) =>  a && a.type === "dictionary"  ? [...Object.values(a)] : []],
+        [Symbol.for("get"), (a, b) => a && (a.__type === "dictionary" || typeof a === "object") ? a[b] : null],
+        [Symbol.for("contains?"), (a, b) =>  a && a.__type === "dictionary" ? a.hasOwnProperty(b) : false],
+        [Symbol.for("keys"), (a) =>  a && a.__type === "dictionary"  ? List.from([...Object.keys(a)].map(k => _keyword(k))) : List.from([])],
+        [Symbol.for("vals"), (a) =>  a && a.__type === "dictionary"  ? List.from([...Object.values(a)]) : List.from([])],
 
-        [Symbol.for("sequential?"), (a) => a instanceof Vector || a instanceof Array ],
+        [Symbol.for("sequential?"), (a) => a instanceof Array ],
         [Symbol.for("symbol"), (a) => Symbol.for(a)],
         [Symbol.for("symbol?"), (a) => typeof a ==="symbol"],
         [Symbol.for("number?"), (a) => typeof a === "number"],
         [Symbol.for("fn?"), (a) => typeof a === "function" && !a.is_macro],
         [Symbol.for("string?"), (a) => typeof a === "string" && !_isKeyword(a)],
-        [Symbol.for("seq"), (a) => a ? a.length === 0 ? null : Array.from(a) : null],
+        [Symbol.for("seq"), (a) => a ? a.length === 0 ? null : List.from(a) : null],
         [Symbol.for("meta"), (a) => 'meta' in a ? a['meta'] : null],
         [Symbol.for("with-meta"), (a, b) => { let c = _clone(a); c.meta = b; return c }],
         [Symbol.for("macro?"), (a) => a.is_macro === true ? true : false],
 
-        [Symbol.for("apply"), (a, ...b) => a(...(b.slice(0,-1).concat(Array.from(b[b.length -1]))))],
-        [Symbol.for("map"), (a, b) => Array.from(b.map(t => a(t)))],
+        [Symbol.for("apply"), (a, ...b) => a(...b.slice(0,-1).concat(b[b.length -1]))],
+        [Symbol.for("map"), (a, b) => b instanceof Array ?  Object.prototype.toString.call(b) === "[object Array]" ? Array.from(b.map(t => a(t))) : List.from(b.map(t => a(t))) : null],
 
         [Symbol.for("time-ms"), () => Date.now()],
     ]

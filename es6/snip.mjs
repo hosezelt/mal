@@ -2,8 +2,10 @@ import rl from './node_readline.js'
 import { Env } from "./env.mjs"
 import { ns } from "./core.mjs"
 import { read_str } from "./reader.mjs"
-import { pr_str } from "./printer.mjs"
-import { _isList, _clone, _isKeyword } from "./types.mjs"
+import { pr_str} from "./printer.mjs"
+import { List, _isList, _clone, _isKeyword } from "./types.mjs"
+import { createRequire } from "module"
+global.require = createRequire(import.meta.url);
 
 const { readline } = rl;
 
@@ -11,16 +13,16 @@ const isPair = (a) => Array.isArray(a) && a.length > 0;
 
 const quasiquote = (ast) => {
     if (!isPair(ast)) {
-        return [Symbol.for("quote"), ast];
+        return List.from([Symbol.for("quote"), ast]);
     }
     else if (ast[0] === Symbol.for("unquote")) {
         return ast[1];
     }
     else if (isPair(ast[0]) && ast[0][0] === Symbol.for("splice-unquote")) {
-        return [Symbol.for("concat"), ast[0][1], quasiquote(ast.slice(1))];
+        return List.from([Symbol.for("concat"), ast[0][1], quasiquote(ast.slice(1))]);
     }
     else {
-        return [Symbol.for("cons"), quasiquote(ast[0]), quasiquote(ast.slice(1))];
+        return List.from([Symbol.for("cons"), quasiquote(ast[0]), quasiquote(ast.slice(1))]);
     }
 
 }
@@ -117,10 +119,18 @@ const EVAL = (ast, env) => {
                 case Symbol.for("quasiquote"):
                     ast = quasiquote(a1);
                     break;
+                case Symbol.for("."):
+                    global.evalast = eval_ast(ast.slice(2)).join(",");
+                    return eval.call(process, `${Symbol.keyFor(a1)}(evalast)`)
                 default:
-                    if(Symbol.keyFor(a0)[0] === ".") {
-                        const temp = a2;
-                        return eval(`${Symbol.keyFor(a1)}${Symbol.keyFor(a0)}(temp)`);
+                    if(typeof a0 === "symbol" && Symbol.keyFor(a0).slice(0, 2) === ".-") {
+                        return eval(`${Symbol.keyFor(a1)}.${Symbol.keyFor(a0).slice(2)}`);
+                    }
+                    if(typeof a0 === "symbol" && Symbol.keyFor(a0)[0] === ".") {
+                        let ast0 = pr_str(a0);
+                        let ast1 = pr_str(a1);
+                        let astr = eval_ast(ast.slice(2), env);
+                        return eval(`${ast1}${ast0}(...astr)`);
                     }
                     const [f, ...args] = eval_ast(ast, env)
                     if (f.malfunc) {
@@ -141,11 +151,11 @@ const EVAL = (ast, env) => {
 }
 
 const eval_ast = (ast, env) => {
-    if (Array.isArray(ast)) {
+    if (ast instanceof Array) {
         return ast.map(token => EVAL(token, env));
     }
-    else if (ast && ast.type === "dictionary") {
-        let new_hm = Object.create({type: "dictionary"});
+    else if (ast && ast.__type === "dictionary") {
+        let new_hm = Object.create({__type: "dictionary"});
         Object.entries(ast).forEach(([k, v]) => new_hm[k] = EVAL(v, env));
         return new_hm
     }
@@ -171,7 +181,7 @@ const REP = str => PRINT(EVAL(READ(str), repl_env))
 
 REP("(def! *host-language* \"Javascript\")")
 REP("(def! not (fn* (a) (if a false true)))")
-REP('(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) " nil)")))))')
+REP('(def! load-file (fn* (f) (eval (read-string (str "(do " (slurp f) "\n nil)")))))')
 REP("(defmacro! cond (fn* (& xs) (if (> (count xs) 0) (list 'if (first xs) (if (> (count xs) 1) (nth xs 1) (throw odd number of forms to cond)) (cons 'cond (rest (rest xs)))))))")
 
 

@@ -1,0 +1,29 @@
+
+
+(def! analyze-constant 
+  (fn* [env form] 
+    {:op :constant 
+     :form form}))
+
+(def! analyze-invoke 
+  (fn* [env form] 
+    (let* [callee (analyze env (first form))
+           params (vec (map (fn* [%form] (analyze env %form)) (rest form)))]
+    {:op :invoke 
+     :form form 
+     :callee callee
+     :params params
+    })))
+
+(def! analyze
+  (fn* [env form]
+   (cond ;(nil? form) (analyze-constant env form)
+         ;(symbol? form) (analyze-symbol env form)
+         (list? form) (if (empty? form)
+                         nil
+                         (analyze-invoke env form))
+         ;(dictionary? form) (analyze-dictionary env form)
+         ;(vector? form) (analyze-vector env form)
+         ;(set? form) (analyze-set env form name)
+         ;(keyword? form) (analyze-keyword env form)
+         :else (analyze-constant env form))))

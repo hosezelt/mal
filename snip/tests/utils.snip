@@ -1,0 +1,21 @@
+(def! *passed* (atom []))
+(def! *failed* (atom []))
+
+(defmacro! is 
+  (fn* [form msg]
+    (let* [op (first form)
+           actual (nth form 1)
+           expected (nth form 2)]
+    `(if ~form
+      (do 
+        (swap! *passed* conj ~msg)
+        true)
+      (do
+        (swap! *failed* conj '~form)
+        (.error console (str "failed: " ~msg "\n" 
+                             "test: " '~form "\n"
+                             "expected: " 
+                             (pr-str ~expected) "\n"
+                             "actual: "
+                             (pr-str (try* ~actual (catch* error (list 'throw (list 'Error (:message error))))))))
+        false)))))

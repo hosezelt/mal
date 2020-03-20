@@ -1,0 +1,25 @@
+(load-file "./utils.snip")
+(load-file "./tokenizer.snip")
+(load-file "./reader.snip")
+
+(def! escode (.require global "escodegen"))
+
+(def! generate (fn* [ast] ((:generate escode) ast)))
+
+
+
+(defn compile [source]
+  (let* [forms (read_str source)
+         ast (write_ast forms {})
+         code (generate ast)]
+  code))
+
+
+(defn -main []
+  (if (= 0 (count *ARGV*))
+    (println "No file Provided")
+    (-> (slurp (first *ARGV*))
+      compile
+      println)))
+
+(-main)

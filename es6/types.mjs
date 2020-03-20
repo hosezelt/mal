@@ -1,6 +1,17 @@
-export const _isList = (obj) => Array.isArray(obj) && !(obj instanceof Vector) && !(_isKeyword(obj));
+export const _isList = (obj) =>  obj && Object.prototype.toString.call(obj) === "[object List]";
 
-export class Vector extends Array { };
+export const _isVector = (obj) =>  Object.prototype.toString.call(obj) === "[object Array]";
+
+export class List extends Array { 
+    constructor() {
+        super();
+        this.__type = "list";
+    }
+
+    get [Symbol.toStringTag]() {
+        return 'List';
+      }
+}
 
 export function _hashMap(hm, ...args) {
     if (args.length % 2 === 1) {
@@ -13,6 +24,12 @@ export function _hashMap(hm, ...args) {
 export function _equal(a, b) {
     if (a === b) return true;
 
+    if(Object.prototype.toString.call(a) === "[object String]" 
+        && Object.prototype.toString.call(b) === "[object String]" )
+        {
+            return a.toString() === b.toString()
+        }
+
     if (Array.isArray(a) && Array.isArray(b)) {
         if (a.length !== b.length) return false;
         for (var i = 0; i < a.length; ++i) {
@@ -21,7 +38,7 @@ export function _equal(a, b) {
         return true;
     }
 
-    if (a && b && a.type==="dictionary" && b.type ==="dictionary") {
+    if (a && b && a.__type==="dictionary" && b.__type ==="dictionary") {
 
         for (const entry of Object.entries(a)) {
             if(!_equal(b[entry[0]], entry[1])) return false;
@@ -32,8 +49,14 @@ export function _equal(a, b) {
     return false;
 }
 
-export const _keyword = obj => _isKeyword(obj) ? obj : '\u029e' + obj
-export const _isKeyword = obj => typeof obj === 'string' && obj[0] === '\u029e'
+export const _keyword = obj => {
+    if(_isKeyword(obj)) return obj;
+    let newKeyword = new String(obj);
+    newKeyword.__type = "keyword";
+    return newKeyword;
+};
+
+export const _isKeyword = obj => Object.prototype.toString.call(obj) ==="[object String]" && obj.__type === "keyword"
 
 export class Atom{
     constructor(val) {
@@ -45,10 +68,10 @@ export function _clone(obj, new_meta) {
     let new_obj = null
     if (_isList(obj)) {
         new_obj = obj.slice(0)
-    } else if (obj instanceof Vector) {
-        new_obj = Vector.from(obj)
-    } else if (obj && obj.type === "dictionary") {
-        new_obj = Object.assign(Object.create({type: "dictionary"}), obj);
+    } else if (obj instanceof Array) {
+        new_obj = Array.from(obj)
+    } else if (obj && obj.__type === "dictionary") {
+        new_obj = Object.assign(Object.create({__type: "dictionary"}), obj);
     } else if (obj instanceof Function) {
         let f = (...a) => obj.apply(f, a)  // new function instance
         new_obj = Object.assign(f, obj)    // copy original properties
